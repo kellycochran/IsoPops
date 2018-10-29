@@ -1,0 +1,48 @@
+Package: IsoDB
+Type: Package
+Title: Framework for Analyzing Output of PacBio Sequencing Experiments
+Version: 0.2.0
+Author: Kelly Cochran <kelly.cochran@duke.edu>
+Maintainer: Kelly Cochran <kelly.cochran@duke.edu>
+Description: Functions for assembling datasets generated from PacBio's IsoSeq
+    post-sequencing pipeline, filtering out off-target and artifactual
+    transcripts, and analyzing/visualizing the resulting curated
+    transcriptomes. This package intends to enable researchers to easily
+    convert IsoSeq output into a more interpretable format, characterize
+    isoforms and isoform distributions, and compare datasets from multiple
+    experiments.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    dplyr,
+    magrittr,
+    stringr,
+    ggplot2,
+    graphics,
+    grDevices,
+    utils,
+    stats
+Suggests:
+    scales,
+    vegan,
+    ineq,
+    reshape,
+    reshape2,
+    text2vec,
+    dendextend,
+    clusterCrit,
+    car,
+    rgl
+RoxygenNote: 6.0.1
+Collate: 
+    'PCA_functions.R'
+    'database_compiling_functions.R'
+    'internal_database_compiling_functions.R'
+    'database_filter_truncations_functions.R'
+    'database_filtering_functions.R'
+    'hello.R'
+    'plot_functions.R'
+    'splicing_heatmap_functions.R'
+    'writing_to_files_functions.R'
+Date/Publication: 2018

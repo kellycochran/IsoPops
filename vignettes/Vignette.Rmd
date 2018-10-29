@@ -1,0 +1,155 @@
+---
+title: "How To Use This Package"
+output: html_document
+---
+
+### Step 1: Compile a Raw Database from Input Files
+
+```{r}
+transcript_filename <- "~/IsoDB_Data/all_data.fasta"
+abundance_filename <- "~/IsoDB_Data/all_data.abundance.txt"
+ORF_filename <- "~/IsoDB_Data/all_data.ORFs.fasta"
+gff_filename <- "~/IsoDB_Data/all_data.gff"
+
+rawDB <- compile_raw_db(transcript_filename, abundance_filename, gff_filename, ORF_filename)
+```
+
+### Step 2: Filter Off-Target Transcripts and Generate Gene Information
+
+```{r}
+# read 2-column file of IDs and gene names into a table
+gene_ID_table <- read.table("~/IsoDB_Data/gene_IDs_and_names.tsv", header = T)
+# you could also create this table in R manually with the command:
+# gene_ID_table <- data.frame(ID = list_of_IDs, Name = list_of_gene_names, stringsAsFactors = F)
+
+# pass in gene table to finish Database processing
+DB_all <- process_db(rawDB, gene_ID_table)
+```
+
+```{r}
+# placeholders for gene names used in code snippets below
+example_gene1 <- gene_ID_table$Name[17]
+example_gene2 <- gene_ID_table$Name[18]
+example_gene_family <- gene_ID_table$Name[23:26]
+```
+
+### Step 3: Optionally, Filter Database By Exon Count, Abundance, or Truncated Transcripts
+
+```{r}
+DB_filter_4ex <- filter_db(DB_all, exon_min_count = 4, abund_cutoff = 1)
+DB_filter_4ex_notrunc <- filter_truncations(DB_filter_4ex)
+DB_filter_4ex_95perc <- filter_db(DB_filter_4ex_notrunc, 4, 0.95, recalc_abundances = F)
+```
+
+### Saving and Loading Databases
+
+This is recommended so that re-running the code is unnecessary, especially if your filtering steps took computational effort.
+
+```{r}
+# save to file
+saveRDS(DB_filter_4ex_95perc, "~/IsoDB_Data/DB_filter_4ex_95perc.db")
+# later, read Database from saved file
+database <- readRDS("~/IsoDB_Data/DB_filter_4ex_95perc.db")
+```
+
+### Examples of Filtering + Saving GFFs
+
+```{r}
+# write GffDB portion of a Database to a file (for IGV or other use)
+write_gff_data(DB_filter_4ex, "~/IsoDB_Data/filter_4ex.gff")
+write_gff_data(DB_filter_4ex_notrunc, "~/IsoDB_Data/filter_4ex_notrunc.gff")
+write_gff_data(DB_filter_4ex_95perc, "~/IsoDB_Data/fullfilter.gff")
+
+# filtering and saving can be combined into one action
+
+# filter by exon count + abundance, then save GFF
+write_gff_data(filter_db(DB_filter_4ex_notrunc, 4, 0.90), "~/IsoDB_Data/filter_4ex_notrunc_90.gff")
+# filter by top X isoforms per gene, then save GFF
+write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 5), "~/IsoDB_Data/fullfilter_top5.gff")
+write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 10), "~/IsoDB_Data/fullfilter_top10.gff")
+write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 25), "~/IsoDB_Data/fullfilter_top25.gff")
+```  
+
+### Example Plots
+
+```{r}
+plot_N50_N75(DB_filter_4ex_95perc)
+plot_N50_N75(DB_filter_4ex_95perc, use_ORFs = T)
+plot_N50_N75(DB_filter_4ex_95perc, genes_to_include = example_gene_family, insert_title = "Gene Family Statistics")
+```
+
+```{r}
+plot_counts(DB_filter_4ex_95perc)
+plot_counts(DB_filter_4ex_95perc, use_log = T)
+plot_counts(DB_filter_4ex_95perc, genes_to_include = example_gene_family)
+plot_counts(DB_filter_4ex_95perc, use_counts = "ORFs")
+```
+
+```{r}
+# using the 4+ exons, no-truncations filtered database (without 95% cutoff)
+jellyfish_plot(DB_filter_4ex_notrunc)
+jellyfish_plot(DB_filter_4ex_notrunc, use_ORFs = T)
+```
+
+```{r}
+plot_exon_dist(DB_filter_4ex_95perc)
+plot_exon_dist(DB_filter_4ex_95perc, bin_width = 0.01)
+plot_exon_dist(DB_filter_4ex_95perc, example_gene1)
+plot_exon_dist(DB_filter_4ex_95perc, example_gene2, sum_dist = F)
+```
+
+### PCA + Clustering: Isoforms
+
+```{r}
+# perform PCA on vectorizations of isoform transcripts
+PCA <- kmer_PCA(DB_filter_4ex_95perc, gene_list = c(example_gene1, example_gene2))
+
+# cluster isoforms based on PCA transformation
+clust <- cluster_PCA(PCA)
+eval_clusters(clust, num_clusters = 2)
+
+# or just plot isoforms by their first 2 PCs...
+plot_PCA(PCA, DB_filter_4ex_95perc)
+plot_PCA(PCA, DB_filter_4ex_95perc, scale_by = "length")
+plot_PCA(PCA, DB_filter_4ex_95perc, scale_by = "abundance")
+
+# ...or their first 3 PCs
+plot_3D_PCA(PCA, DB_filter_4ex_95perc)
+plot_3D_PCA(PCA, DB_filter_4ex_95perc, scale_by = "length")
+plot_3D_PCA(PCA, DB_filter_4ex_95perc, scale_by = "abundance")
+```
+
+### PCA + Clustering: ORFs
+
+```{r}
+# perform PCA on vectorizations of ORF peptide sequences
+prot_PCA <- kmer_PCA(DB_filter_4ex_95perc, gene_list = c(example_gene1, example_gene2), use_ORFs = T)
+
+# cluster ORFs based on PCA transformation
+prot_clust <- cluster_PCA(prot_PCA)
+eval_clusters(prot_clust, num_clusters = 2)
+
+# or just plot ORFs by their first 2 PCs...
+plot_PCA(prot_PCA, DB_filter_4ex_95perc)
+plot_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "length")
+plot_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "abundance")
+
+# ...or their first 3 PCs
+plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc)
+plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "length")
+plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "abundance")
+```
+
+### Splicing Heatmaps
+
+```{r}
+# look at the alternative splicing event frequencies across one gene
+plot_splicing(DB_filter_4ex_95perc, example_gene1)
+
+# for many-isoform genes, show only the top X most abundant isoforms
+plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 20)
+```
+
+
+
+
