@@ -1,0 +1,168 @@
+body {
+    height: 100%;
+}
+
+html {
+    height: 100%;
+}
+
+/* only on pages that are too short */
+.main-container {
+    #height: 100%;
+}
+
+.row {
+    height: 100%;
+    #overflow: hidden;
+}
+
+main {
+    padding-top: 100px;
+    height: 100%;
+}
+
+.sidebar {
+    #margin-bottom: -1000px;
+}
+
+.sticky-offset {
+    top: 70px !important;
+}
+
+.navbar-bg {
+    background-color: #17008e;
+}
+
+.navbar-brand {
+    font-size: 24px !important;
+}
+
+.faded-white {
+    opacity: 0.7;
+    font-size: 18px;
+    padding-left: 5px;
+}
+
+.nav-link, a.nav-link:visited {
+    color: white;
+    opacity: 0.8;
+}
+
+a.nav-link:hover {
+    color: #646bff;
+}
+
+.sidebar-heading {
+    padding-bottom: 5px;
+}
+
+section.jumbotron {
+    background: #e3e7fc;
+    margin: 40px;
+    padding-bottom: 15px;
+}
+
+.jumbotron-btn {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.plots-container {
+    padding: 40px;
+}
+
+.img-container {
+    text-align: center;
+}
+
+.plot-desc {
+    text-align: center;
+}
+
+.lead {
+    padding: 10px;
+}
+
+.vertical-align {
+    display: flex;
+    align-items: center;
+}
+
+
+@media screen and (max-width: 768px) {
+    main {  
+        padding-top: 0px;
+    }
+    
+    section.jumbotron {
+        margin: 10px;
+    }
+}
+
+.mid-page {
+    padding-right: 100px !important;
+    padding-left: 50px !important;
+}
+
+pre {
+    text-align: left;
+    white-space: pre-line;
+    padding-left: 60px;
+    padding-top: 10px;
+    font-weight: bold;
+    color: #17008e !important;
+    padding-bottom: 20px;
+}
+
+code {
+    font-weight: bold;
+    color: #17008e !important;
+}
+
+.comment {
+    font-weight: normal;
+    color: cornflowerblue;
+}
+
+ol {
+    padding-left: 60px;
+}
+
+ol > li {
+    padding-top: 5px;
+}
+
+.footer {
+    text-align: center;
+    width: 100%;
+    font-size: 15px;
+    margin-bottom: 0px;
+    padding-bottom: 15px;
+    margin-top: 15px;
+}
+
+.indent {
+    text-indent: 30px;
+    padding-bottom: 10px;
+}
+
+.centered-pic-caption {
+    width: 70%;
+    margin: auto;
+    text-align: center;
+}
+
+.card-text {
+    text-align: center;
+    font-size: 12px;
+    padding: 0px;
+    margin: 0px;
+}
+
+.card-body {
+    text-align: center;
+    font-size: 12px;
+    padding-top: 5px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}

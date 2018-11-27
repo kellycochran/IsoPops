@@ -1,0 +1,9 @@
+IsoDB.Rproj
+
+.Rbuildignore
+.Rhistory
+.Rproj.user
+R/.Rapp.history
+man/.Rapp.history
+man/*
+*DS_store*

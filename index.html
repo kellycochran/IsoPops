@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title> IsoDB | Home </title>
+        <link rel="stylesheet" href="site_files/main.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+    </head>
+    <body>
+        <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoDB <span class="faded-white">Version 0.2.0 </span> </a>
+        </nav>
+
+        <div class="container-fluid">
+          <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-dark sidebar sticky-top sticky-offset">
+              <div class="sidebar-sticky sticky-top sticky-offset">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a class="nav-link" href="#"> Home <span class="sr-only"> (current) </span> </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="site_files/about.html"> About </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="site_files/install.html"> Install </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="site_files/walkthrough.html"> Walkthrough </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoDB"> Source Code </a>
+                  </li>
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                  <span class="sidebar-heading"> Docs </span>
+                  <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                  </a>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link" href="site_files/DB_objects.html"> Database Objects </a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+              <section class="jumbotron">
+                <div class="container">
+                  <h1 class="jumbotron-heading"> PacBio transcriptome analysis & visualization, made easy. </h1>
+                  <p class="lead text-muted"> IsoDB is an R package designed to filter and process PacBio long-read transcripts for more straightforward, sophisticated analysis of alternative splicing datasets. IsoDB organizes isoform information into compact, interpretable tables at the transcript, ORF, and gene levels. Informative plots ranging from simple bar charts to PCA-based diversity maps can be generated in only a few lines of code. IsoDB is currently available for download on Github. </p>
+                  <p class="text-center">
+                    <a href="install.html" class="btn btn-primary my-2 jumbotron-btn"> Get Started </a>
+                    <a href="https://github.com/kellycochran/IsoDB" class="btn btn-secondary my-2 jumbotron-btn"> Check Out The Code </a>
+                  </p>
+                </div>
+              </section>
+
+              <div class="">
+                <div class="container">
+                  <div class="row plots-container vertical-align">
+                    <div class="col-md-7 img-container">
+                      <a href="#">
+                        <img class="img-fluid rounded mb-3 mb-md-0 center-block" src="site_files/images/jellyfish.png" alt="">
+                      </a>
+                    </div>
+                    <div class="col-md-5">
+                      <p class="lead plot-desc"> Explore novel approaches to the visualization of complex gene-isoform diversity </p>
+                    </div>
+                  </div>
+
+                  <div class="row plots-container vertical-align">
+                    <div class="col-md-5">
+                      <p class="lead plot-desc"> Get summary statistics plots for each gene to quickly compare isoform composition across multiple datasets </p>
+                    </div>
+                    <div class="col-md-7 img-container">
+                      <a href="#">
+                        <img class="img-fluid rounded mb-3 mb-md-0 center-block" src="site_files/images/isoforms.png" alt="">
+                      </a>
+                    </div>
+                  </div>
+
+                  <div class="row plots-container vertical-align">
+                    <div class="col-md-7 img-container">
+                      <a href="#">
+                        <img class="img-fluid rounded mb-3 mb-md-0 center-block" src="site_files/images/splicing.png" alt="" style="margin:0 auto;">
+                      </a>
+                    </div>
+                    <div class="col-md-5">
+                      <p class="lead plot-desc"> Zoom in on alternative splicing events in a single gene, with up to 1bp resolution </p>
+                    </div>
+                  </div>
+                    
+                </div>
+                <div class="footer text-center">
+                  <hr>
+                  IsoDB is licensed under the <a href="https://github.com/kellycochran/IsoDB/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                </div>
+   
+              </div>
+            </main>
+          </div>
+        </div>
+        
+        <!-- Bootstrap, jQuery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>        
+    </body>
+</html>
+

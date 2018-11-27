@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title> IsoDB | Walkthrough </title>
+        <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+    </head>
+    <body>
+        <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoDB <span class="faded-white">Version 0.2.0 </span> </a>
+        </nav>
+
+        <div class="container-fluid main-container">
+          <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-dark sidebar sticky-top sticky-offset">
+              <div class="sidebar-sticky sticky-top sticky-offset">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../index.html"> Home </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="about.html"> About </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="install.html"> Install </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#"> Walkthrough <span class="sr-only"> (current) </span></a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoDB"> Source Code </a>
+                  </li>
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                  <span class="sidebar-heading"> Docs </span>
+                  <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                  </a>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link" href="DB_objects.html"> Database Objects </a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+              <div class="">
+                <div class="container mid-page">
+                  <h1>Walkthrough</h1>
+                  <br>
+                  <p> After running the IsoSeq protocol, you should have three output files: </p>
+                      
+                  <ol>
+                    <li>A FASTA file containing your transcript sequences</li>
+                    <li>A GFF file summarizing the exonic structure of your transcripts</li>
+                    <li>An abundance.txt file, listing the number of reads counted for each transcript</li>
+                  </ol>
+                  
+                  <p> It is recommended to run a genome correction tool on your sequences and replace your original FASTA file with the result of that. If you are interested in looking at ORF predictions for your transcripts, you can also run any ORF finder on your sequences and generate a FASTA/.faa file of those as well (but ORF file input is optional). The software <a href="https://bitbucket.org/ConesaLab/sqanti">SQANTI</a> can accomplish both goals in one step. </p>
+                    
+                  <p>Once you have the files needed, the first step is to compile those files into a <a href="DB_objects.html#Raw">Raw Database</a> object. Replacing filenames appropriately, run the following from your R console or within Rstudio:</p>
+                    
+                  <pre>
+                    library(IsoDB)
+                
+                    transcript_filename &lt;- "~/IsoDB_Data/all_data.fasta"
+                    abundance_filename &lt;- "~/IsoDB_Data/all_data.abundance.txt"
+                    ORF_filename &lt;- "~/IsoDB_Data/all_data.ORFs.fasta"
+                    GFF_filename &lt;- "~/IsoDB_Data/all_data.gff"
+
+rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename, ORF_filename)
+                  </pre>
+                    
+                  <p>
+                    The <code>rawDB</code> variable now contains a table of transcript information, as well as your GFF and ORF data. You can look at either with <code>View(rawDB$TranscriptDB)</code> or <code>View(rawDB$GffDB)</code> in Rstudio. If you're old school and would rather view data in Excel or another program, you can save any data frame into a tsv file with:
+                  </p> 
+                    
+                  <pre>
+                    write.table(rawDB$TranscriptDB, "path/to/file_name.tsv", quote = F, row.names = F, sep = "\t")
+                  </pre>
+                
+                  <p>
+                    To finish processing your dataset, you'll need to provide IsoDB with a way to associate PacBio transcript IDs with the genes you're interested in. Because IsoDB is completely annotation and genome free, this gene information just takes the form of a two-column tab-delimited file. List gene names in the first column and PacBio gene ID prefixes in the second, like so:
+                  </p>
+                    
+                  <pre>
+                      Gene &nbsp;&nbsp;&nbsp;&nbsp; ID  <span class="comment"> # include header</span>
+                      Gene1 &nbsp;&nbsp;&nbsp;&nbsp; PB.1
+                      Gene2 &nbsp;&nbsp;&nbsp;&nbsp; PB.2
+                      Gene3 &nbsp;&nbsp;&nbsp;&nbsp; PB.3
+                      ... &nbsp;&nbsp;&nbsp;&nbsp; ...
+                  </pre>
+                    
+                  <p> You can also make a data frame in R directly with the same information and format. Then finish processing the Database by passing in the gene ID table: </p>
+                    
+                  <pre>
+                    gene_ID_table &lt;- read.table("~/IsoDB_Data/gene_IDs_and_names.tsv", header = T)
+                    DB_all &lt;- process_db(rawDB, gene_ID_table)
+                  </pre>
+                    
+                  <p> The variable <code>DB_all</code> now contains the same table of transcript information, with added gene info, plus a table of gene-level info, a table of info for each unique ORF, and GFF data. These new tables can be inspected by <code>View(rawDB$GeneDB)</code> and <code>View(rawDB$OrfDB)</code>.</p>
+                    
+                  <p> If you'd like to filter your dataset before analysis, there are multiple options available. Each filtering operation creates a new <a href="DB_objects.html">Database</a> object, so you can chain filters by using the output of one filtering step as the input for your next filtering step: </p>
+                
+                  <pre>
+                    DB_filter_4ex &lt;- filter_db(DB_all, exon_min_count = 4)
+                    DB_filter_notrunc &lt;- filter_truncations(DB_filter_4ex)
+                    DB_filter_95perc &lt;- filter_db(DB_filter_notrunc, abund_cutoff = 0.95, recalc_abundances = F)
+                  </pre>
+                    
+                  <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoDB. Check out the <a href="#">Standard Plots</a> and <a href="#">PCA Plots</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoDB/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
+                    
+                  <p> Any <a href="DB_objects.html">Database</a> object can be saved and loaded back into memory at a later time. This is recommended once you've processed or filtered a Database (instead of rebuilding the Database every time). </p>
+                    
+                  <pre>
+                    saveRDS(DB_final, "path/to/file_name.db")  <span class="comment"> # saves the DB_final Database to a specific file name </span> 
+                    DB_loaded &lt;- readRDS("path/to/file_name.db")  <span class="comment"> # loads saved Database into the variable DB_loaded </span> 
+                  </pre>
+                    
+                    
+                </div>
+                  
+                <div class="footer text-center">
+                  <hr>
+                  IsoDB is licensed under the <a href="https://github.com/kellycochran/IsoDB/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                </div> 
+              </div>
+            </main>
+          </div>
+        </div>
+        
+        <!-- Bootstrap, jQuery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>        
+    </body>
+</html>
+

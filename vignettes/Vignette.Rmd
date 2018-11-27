@@ -144,7 +144,7 @@ plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "abundance")
 
 ```{r}
 # look at the alternative splicing event frequencies across one gene
-plot_splicing(DB_filter_4ex_95perc, example_gene1)
+plot_splicing(DB_filter_4ex_95perc, example_gene2)
 
 # for many-isoform genes, show only the top X most abundant isoforms
 plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 20)

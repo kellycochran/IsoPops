@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title> IsoDB | Database Objects </title>
+        <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+    </head>
+    <body>
+        <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoDB <span class="faded-white">Version 0.2.0 </span> </a>
+        </nav>
+
+        <div class="container-fluid main-container">
+          <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-dark sidebar sticky-top sticky-offset">
+              <div class="sidebar-sticky sticky-top sticky-offset">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../index.html"> Home </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="about.html"> About </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="install.html"> Install </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="walkthrough.html"> Walkthrough </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoDB"> Source Code </a>
+                  </li>
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                  <span class="sidebar-heading"> Docs </span>
+                  <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                  </a>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link" href="#"> Database Objects <span class="sr-only"> (current) </span></a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+              <div class="">
+                <div class="container mid-page">
+                  <h1>Database Objects</h1>
+                  <br>
+                  
+                  <p>
+                    IsoDB saves data in collections of data frames called Database objects. Each data frame is a table containing information on individual transcripts (the TranscriptDB), unique ORFs (the OrfDB), gene-level information (the GeneDB), or GFF/GTF-formatted transcript data (the GffDB). As filtering steps are applied to a Database, isoforms are filtered from all parts of the Database. This makes it possible to, for example, examine which ORFs are implicated when transcripts are filtered by read count. Each Database object can be used to store data from a single filtering step, a particular experiment, a specific cell type, etc.
+                  </p>
+                    
+                  <p>
+                    There are two kinds of Database objects: Raw Databases and processed Databases. The distinction separates non-targeted experiments from targeted ones, since processed Databases only retain isoforms from the genes which were targeted by the experimental protocol. Raw Databases, on the other hand, are for use in whole-transcriptome analysis.
+                  </p>
+                    
+                  <br>
+                    
+                  <h3>Raw Databases</h3>
+                    
+                  <p>
+                    A Raw Database consists of a compiled TranscriptDB and a compiled GffDB from the same experiment. Raw Databases, unlike processed Databases, do not include any gene information. Raw Databases are also different from processed Databases in that they do not contain an OrfDB, although the ORFs are included as part of the TranscriptDB if provided. Raw Databases are unfiltered -- if your dataset includes off-target reads, they will still be present in the Raw Database. Raw Databases are created using the function <code>compile_raw_db()</code>.
+                  </p>
+                    
+                  <p>
+                    At the moment, much of the functionality of IsoDB is specific to targeted sequencing experiments, and thus will only work with processed Database objects. But compiling your data into a Raw Database can still be useful for examining the quality and distribution of reads from an experiment.
+                  </p>
+                    
+                  <br>
+                
+                  <h3>Processed Databases</h3>
+                    
+                  <p>
+                    One of the first steps in filtering reads in a targeted sequencing approach is removing off-target reads. These are any reads which come from genes besides the genes you designed probes for. You can filter these reads out, after compiling your data into a Raw Database, by processing that Raw Database. From there additional filtering steps can be applied, such as read count cutoffs and minimum exon requirements. Processed Databases are created by passing a Raw Database along with a gene-ID table into the function <code>process_db()</code>.
+                  </p>
+                    
+                </div>
+                  
+                <div class="footer text-center">
+                  <hr>
+                  IsoDB is licensed under the <a href="https://github.com/kellycochran/IsoDB/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                </div> 
+              </div>
+            </main>
+          </div>
+        </div>
+        
+        <!-- Bootstrap, jQuery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>        
+    </body>
+</html>
+
