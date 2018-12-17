@@ -14,6 +14,7 @@ add_abundance_data <- function(transcriptDB, abundance_filename) {
   transcriptDB <- transcriptDB %>% dplyr::left_join(abundances, by = c("PBID"))
 
   # Isoseq is set to minimum 2 FL reads, so add missing 1-read counts
+  # should do this better in the future
   transcriptDB$FL_reads[is.na(transcriptDB$FL_reads)] <- 1
   return(transcriptDB)
 }
@@ -33,7 +34,7 @@ get_gff_data <- function(gff_filepath) {
 
 
 # internal
-make_ORF_db <- function(transcriptDB) {
+make_ORF_db <- function(transcriptDB, aa_cutoff = 250) {
   if (!("ORF" %in% colnames(transcriptDB))) return(NULL)
   # TODO: optimize speed here
   orf_db <- transcriptDB[!is.na(transcriptDB$ORF),
@@ -54,8 +55,9 @@ make_ORF_db <- function(transcriptDB) {
     orf_db <- orf_db[which(orf_db$ORF != duplicate_proteins[i]), ]
     orf_db <- rbind(orf_db, merged)
   }
-  # note 250aa minimum length cutoff
-  orf_db <- orf_db[which(orf_db$ORFLength >= 250),]
+  if (max(orf_db$ORFLength) < aa_cutoff) return(NULL)
+  # note minimum length cutoff
+  orf_db <- orf_db[which(orf_db$ORFLength >= aa_cutoff),]
   orf_db <- calc_abundances(orf_db, genes_known = T)
   return(orf_db)
 }
@@ -95,7 +97,7 @@ add_gene_names_to_transcripts <- function(transcriptDB, geneDB) {
   if (is.null(transcriptDB$Gene)) {
     transcriptDB$Gene <- rep(NA, nrow(transcriptDB))
   }
-  for (i in 1:length(transcriptDB$Prefix)) {
+  for (i in seq_len(length(transcriptDB$Prefix))) {
     name <- geneDB$Name[which(geneDB$ID == transcriptDB$Prefix[i])]
     if (is.na(transcriptDB$Gene[i])) {
       transcriptDB$Gene[i] <- ifelse(length(name) > 0, name, NA)
@@ -145,7 +147,12 @@ add_isoform_info <- function(transcriptDB, geneDB) {
   geneDB$N75 <- sapply(geneDB$Name, function(x) {
     sum(transcriptDB$CumPercAbundance[transcriptDB$Gene == x] < 0.75) + 1
   })
-  counts <- data.frame(table(transcriptDB$Prefix))
+  if (length(unique(transcriptDB$Prefix)) == 1) {
+    counts <- data.frame(ID = transcriptDB$Prefix[1],
+                         Isoforms = nrow(transcriptDB))
+  } else {
+    counts <- data.frame(table(transcriptDB$Prefix))
+  }
   names(counts) <- c("ID", "Isoforms")
   counts$ID <- as.character(counts$ID)
   return(geneDB %>% dplyr::left_join(counts, by = "ID"))
@@ -162,8 +169,16 @@ add_ORF_info <- function(transcriptDB, geneDB, orfDB = NULL) {
     })
   }
   if (!is.null(orfDB)) {
-    counts <- data.frame(table(orfDB$Gene))
-    names(counts) <- c("Name", "UniqueORFs")
+    if (length(unique(orfDB$Gene)) == 1) {
+      print("Success")
+      counts <- data.frame(Name = c(unique(orfDB$Gene)),
+                           UniqueORFs = c(length(orfDB$Gene)))
+    } else {
+      View(orfDB)
+      print(orfDB)
+      counts <- data.frame(table(orfDB$Gene))
+      names(counts) <- c("Name", "UniqueORFs")
+    }
     counts$Name <- as.character(counts$Name)
     geneDB <- geneDB %>% dplyr::left_join(counts, by = "Name")
     geneDB$ORFN50 <- sapply(geneDB$Name, function(x) {

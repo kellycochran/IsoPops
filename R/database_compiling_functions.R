@@ -106,13 +106,18 @@ compile_raw_db <- function(transcript_filename, abundance_filename,
 #' plot or filtering function of this package, or its tables can be saved to
 #' csv or GFF2 format for use in other analyses. Note: in order for the GeneDB
 #' to calculate the Shannon Index and Gini Coefficient for isoform diversities,
-#' the packages \code{ineq} and \code{vegan} are required.
+#' the packages \code{ineq} and \code{vegan} are required. Note 2: the OrfDB
+#' will by default only retain ORFs with at least 250 amino acids. you can
+#' override this by setting your own aa_cutoff value.
 #'
 #' @param rawDB A \code{\link{RawDatabase}} object created by
 #' \code{\link{compile_raw_db}}.
 #' @param gene_ID_table A data frame consisting of a column of gene names and a
 #' column of IDs (corrsponding to isoform IDs in the RawDatabase), with column
 #' names "Name" and "ID".
+#' @param aa_cutoff Minimum number of amino acids required for an ORF to be
+#' retained in the OrfDB table. Does not affect the TranscriptDB. Affects ORF
+#' counts in the GeneDB. Default is 250.
 #' @return A \code{\link{Database}} object.
 #' @examples
 #' \dontrun{
@@ -122,10 +127,13 @@ compile_raw_db <- function(transcript_filename, abundance_filename,
 #' DB <- process_db(rawDB, gene_ID_table)
 #' }
 #' @export
-process_db <- function(rawDB, gene_ID_table) {
+process_db <- function(rawDB, gene_ID_table, aa_cutoff = 250) {
   print("Processing database...")
   geneDB <- data.frame(ID = gene_ID_table$ID, Name = gene_ID_table$Name,
                        stringsAsFactors = F)
+  # redundant but apparently R doesn't listen the first time
+  geneDB$ID <- as.character(geneDB$ID)
+  geneDB$Name <- as.character(geneDB$Name)
   transcriptDB <- add_gene_names_to_transcripts(rawDB$TranscriptDB, geneDB)
   # filter to only keep targeted transcripts
   # (or transcripts that we can label with a gene name)
@@ -142,9 +150,11 @@ process_db <- function(rawDB, gene_ID_table) {
 
   # add ORF info (optional)
   if ("ORF" %in% colnames(rawDB$TranscriptDB)) {
-    orfDB <- make_ORF_db(transcriptDB)
-    geneDB <- add_ORF_info(transcriptDB, geneDB, orfDB)
-    geneDB <- add_diversity_indeces(geneDB, orfDB = orfDB)
+    orfDB <- make_ORF_db(transcriptDB, aa_cutoff)
+    if (!is.null(orfDB)) {
+      geneDB <- add_ORF_info(transcriptDB, geneDB, orfDB)
+      geneDB <- add_diversity_indeces(geneDB, orfDB = orfDB)
+    }
   } else {
     orfDB <- NULL
   }
