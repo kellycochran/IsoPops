@@ -78,7 +78,7 @@ kmer_PCA <- function(database, gene_list = database$GeneDB$Name,
     isoform_subset <- database$OrfDB$Gene %in% gene_list
     seqs <- database$OrfDB$ORF[isoform_subset]
   } else {
-    isoform_subset <- which(database$TranscriptDB$Gene %in% gene_list)
+    isoform_subset <- database$TranscriptDB$Gene %in% gene_list
     seqs <- database$TranscriptDB$Transcript[isoform_subset]
   }
   dtm <- get_PCA_dtm(seqs, k, length_normalize)
