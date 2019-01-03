@@ -72,13 +72,13 @@ CH <- function(cluster, numClusters, original) {
 }
 
 #' @export
-kmer_PCA <- function(database, gene_list = unique(database$TranscriptDB$Gene),
+kmer_PCA <- function(database, gene_list = database$GeneDB$Name,
                      use_ORFs = F, k = 6, length_normalize = T) {
   if (use_ORFs) {
     isoform_subset <- database$OrfDB$Gene %in% gene_list
     seqs <- database$OrfDB$ORF[isoform_subset]
   } else {
-    isoform_subset <- database$TranscriptDB$Gene %in% gene_list
+    isoform_subset <- which(database$TranscriptDB$Gene %in% gene_list)
     seqs <- database$TranscriptDB$Transcript[isoform_subset]
   }
   dtm <- get_PCA_dtm(seqs, k, length_normalize)

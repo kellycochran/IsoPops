@@ -18,7 +18,7 @@ rawDB <- compile_raw_db(transcript_filename, abundance_filename, gff_filename, O
 
 ```{r}
 # read 2-column file of IDs and gene names into a table
-gene_ID_table <- read.table("~/IsoDB_Data/gene_IDs_and_names.tsv", header = T)
+gene_ID_table <- read.table("~/IsoDB_Data/gene_IDs_and_names.tsv", header = T, stringsAsFactors = F)
 # you could also create this table in R manually with the command:
 # gene_ID_table <- data.frame(ID = list_of_IDs, Name = list_of_gene_names, stringsAsFactors = F)
 
@@ -65,7 +65,6 @@ write_gff_data(DB_filter_4ex_95perc, "~/IsoDB_Data/fullfilter.gff")
 # filter by exon count + abundance, then save GFF
 write_gff_data(filter_db(DB_filter_4ex_notrunc, 4, 0.90), "~/IsoDB_Data/filter_4ex_notrunc_90.gff")
 # filter by top X isoforms per gene, then save GFF
-write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 5), "~/IsoDB_Data/fullfilter_top5.gff")
 write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 10), "~/IsoDB_Data/fullfilter_top10.gff")
 write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 25), "~/IsoDB_Data/fullfilter_top25.gff")
 ```  
@@ -148,6 +147,11 @@ plot_splicing(DB_filter_4ex_95perc, example_gene2)
 
 # for many-isoform genes, show only the top X most abundant isoforms
 plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 20)
+
+# zoom in on splicing sites of interest, using an interval of %s from left to right...
+plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 10, zoom_in = c(0.9, 1))
+# or using genomic coordinates
+plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 10, zoom_in = c(64680000, 64694500))
 ```
 
 
