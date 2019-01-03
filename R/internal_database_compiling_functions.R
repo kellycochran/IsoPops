@@ -170,12 +170,9 @@ add_ORF_info <- function(transcriptDB, geneDB, orfDB = NULL) {
   }
   if (!is.null(orfDB)) {
     if (length(unique(orfDB$Gene)) == 1) {
-      print("Success")
       counts <- data.frame(Name = c(unique(orfDB$Gene)),
                            UniqueORFs = c(length(orfDB$Gene)))
     } else {
-      View(orfDB)
-      print(orfDB)
       counts <- data.frame(table(orfDB$Gene))
       names(counts) <- c("Name", "UniqueORFs")
     }
