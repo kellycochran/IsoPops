@@ -155,5 +155,18 @@ plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 10, zoom_in = 
 ```
 
 
+### Exon Correlation Heatmaps
+
+
+```{r}
+# this requires inputting a file of named exon sequences
+# shows exon co-splicing correlations
+plot_exon_correlations(DB_filter_4ex_95perc, "~/IsoDB_Data/example_exons.tsv", example_gene2, exons_to_include = c("01", "02", "03", "04", "05", "06", "07", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"))
+
+# can also override weighting the correlation by transcript abundance
+# optionally, draw the heatmap symmetrically (showing both triangles)
+# you can also plot a histogram of correlations to see overall trends
+plot_exon_correlations(DB_filter_4ex_95perc, "~/IsoDB_Data/example_exons.tsv", example_gene2, weighted = F, plot_hist = T, symmetric = T)
+```
 
 
