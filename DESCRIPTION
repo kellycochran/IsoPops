@@ -45,4 +45,5 @@ Collate:
     'plot_functions.R'
     'splicing_heatmap_functions.R'
     'writing_to_files_functions.R'
+    'exon_correlation_heatmap_functions.R'
 Date/Publication: 2018
