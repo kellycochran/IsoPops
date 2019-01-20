@@ -21,7 +21,14 @@ plot_exon_correlations <- function(database, exon_filename, gene, weighted = T,
 
   # exon file should be 2 columns: name/number and nucleotide sequence
   # columns should be separated by tabs
-  exons <- read.table(exon_filename, header = F, stringsAsFactors = F)
+  # if it's a fasta file, a temp. file will be made
+  if (!is_tsv_format(exon_filename, PBIDs = F)) {
+    tmpfile <- get_tmp_tsv_file(exon_filename, exons = T)
+    exons <- read.table(tmpfile, header = F, stringsAsFactors = F)
+  } else {
+    exons <- read.table(exon_filename, header = F, stringsAsFactors = F)
+  }
+
   colnames(exons) <- c("ID", "Sequence")
   exons$Sequence <- sapply(exons$Sequence, toupper)
   exons$Start <- sapply(exons$Sequence, function(exon) {

@@ -226,9 +226,15 @@ add_diversity_indeces <- function(geneDB, indeces = c("Gini", "Shannon"),
 }
 
 # internal
-is_tsv_format <- function(filename) {
-  head <- system(command = paste("head -n1 ", filename, step = ""), intern = T)
-  return(grepl("PB\\.[0-9]+\\.[0-9]+[[:space:]][acgtnACGTN]+$", head))
+is_tsv_format <- function(filename, PBIDs = T) {
+  if (PBIDs) {
+    head <- system(command = paste("head -n1 ", filename, step = ""),
+                    intern = T)
+    return(grepl("PB\\.[0-9]+\\.[0-9]+[[:space:]][acgtnACGTN]+$", head))
+  } else {
+    return(length(system(command = paste("awk -F '\t' 'NF < 2' ", filename,
+                                         step = ""), intern = T)) == 0)
+  }
 }
 
 # internal
@@ -289,26 +295,34 @@ read_tsv_file <- function(tsv_filename, get_prefix = T) {
   return(seqDB)
 }
 
-get_tmp_tsv_file <- function(filename, ORF_file = F) {
+get_tmp_tsv_file <- function(filename, ORFs = F, exons = F) {
   old_name <- strsplit(basename(filename), split = ".",
                        fixed = T)[[1]]
   old_name <- paste(old_name[1:length(old_name) - 1], collapse = ".")
   d_name <- dirname(filename)
-  if (ORF_file) {
-    tmpfile <- paste(d_name, "/", old_name, ".ORFs.tsv", sep = "")
-  } else {
-    tmpfile <- paste(d_name, "/", old_name, ".transcripts.tsv", sep = "")
+
+  if (ORFs) ext <- "ORFs"
+  else {
+    if (exons) ext <- "exons"
+    else ext <- "transcripts"
   }
+  tmpfile <- paste(d_name, "/", old_name, ".", ext, ".tsv", sep = "")
 
   if (!file.exists(tmpfile)) {
     # convert fasta/fastq to tsv format for R-compatible reading in
     # example tsv file line:
     # PB.1.1   ACGTCATCATCAT
-
-    system(command = paste("cat ", filename,
-                           " | sed -E 's/^.*(PB\\.[0-9]+\\.[0-9]+).*$/DELIM1\\1DELIM2/'",
-                           " | tr -d '\n'  | sed 's/DELIM1/\\'$'\n/g'",
-                           " | sed 's/DELIM2/\'$'\t/g' | tail -n +2 > ", tmpfile, sep = ""))
+    if (!exons) {
+      system(command = paste("cat ", filename,
+              " | sed -E 's/^.*(PB\\.[0-9]+\\.[0-9]+).*$/DELIM1\\1DELIM2/'",
+              " | tr -d '\n'  | sed 's/DELIM1/\\'$'\n/g'",
+              " | sed 's/DELIM2/\'$'\t/g' | tail -n +2 > ", tmpfile, sep = ""))
+    } else {
+      system(command = paste("cat ", filename,
+              " | sed -E 's/^>(.*)$/DELIM1\\1DELIM2/'",
+              " | tr -d '\n'  | sed 's/DELIM1/\\'$'\n/g'",
+              " | sed 's/DELIM2/\'$'\t/g' | tail -n +2 > ", tmpfile, sep = ""))
+    }
   }
   return(tmpfile)
 }
