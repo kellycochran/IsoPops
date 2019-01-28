@@ -22,23 +22,37 @@ string_to_seq <- function(seq) {
 }
 
 #' @export
-get_PCA_dtm <- function(raw_sequences, n, length_norm = T) {
+get_kmer_counts <- function(database, genes = database$GeneDB$Name,
+                            kmer_size = 6, use_ORFs = F, length_normalize = T) {
+  print("Creating k-mer count matrix.") # might take a while for all genes
+
   if (!requireNamespace("text2vec", quietly = TRUE)) {
     stop("Error: missing the text2vec package.")
     return(NULL)
   } else {
+    if (use_ORFs) {
+      isoform_subset <- database$OrfDB$Gene %in% genes
+      # if ORF came from multiple transcripts, just use first transcript ID
+      IDs <- sapply(database$OrfDB$PBID[isoform_subset], function(x) {
+        x[[1]][[1]] })
+      raw_sequences <- database$OrfDB$ORF[isoform_subset]
+    } else {
+      isoform_subset <- database$TranscriptDB$Gene %in% genes
+      IDs <- database$TranscriptDB$PBID[isoform_subset]
+      raw_sequences <- database$TranscriptDB$Transcript[isoform_subset]
+    }
     sequences <- as.character(sapply(raw_sequences, string_to_seq))
+
     it <- text2vec::itoken(sequences, preprocessor = identity,
                            tokenizer = text2vec::word_tokenizer,
                            progressbar = F)
-    vocab <- text2vec::create_vocabulary(it, ngram = c(n, n))
+    vocab <- text2vec::create_vocabulary(it, ngram = c(kmer_size, kmer_size))
     dtm <- text2vec::create_dtm(it, text2vec::vocab_vectorizer(vocab))
-    if (length_norm) {
-      dtm <- data.frame(t(apply(dtm, 1, function(dtm_row) dtm_row / sum(dtm_row))))
-    } else {
-      # need the transformation to data frame anyways
-      dtm <- data.frame(t(apply(dtm, 1, function(dtm_row) dtm_row)))
+
+    if (length_normalize) {
+      dtm <- data.frame(t(apply(dtm, 1, function(row) row / sum(row))))
     }
+    rownames(dtm) <- IDs
     return(dtm)
   }
 }
@@ -72,218 +86,195 @@ CH <- function(cluster, numClusters, original) {
 }
 
 #' @export
-kmer_PCA <- function(database, gene_list = database$GeneDB$Name,
-                     use_ORFs = F, k = 6, length_normalize = T) {
-  if (use_ORFs) {
-    isoform_subset <- database$OrfDB$Gene %in% gene_list
-    seqs <- database$OrfDB$ORF[isoform_subset]
-  } else {
-    isoform_subset <- database$TranscriptDB$Gene %in% gene_list
-    seqs <- database$TranscriptDB$Transcript[isoform_subset]
-  }
-  dtm <- get_PCA_dtm(seqs, k, length_normalize)
-  pca <- stats::prcomp(dtm, scale = F)
-  if (!use_ORFs) {
-    rownames(pca$x) <- database$TranscriptDB$PBID[isoform_subset]
-  }
+kmer_PCA <- function(database, kmer_counts = NULL, genes = NULL,
+                     use_ORFs = F) {
 
-  eigenvalues <- (pca$sdev ^ 2)[1:min(length(gene_list) * 3, 5)]
+  # if kmer_counts aren't supplied (this uses all default settings!)
+  # if kmer_counts aren't supplied, need to supply genes
+  # otherwise will default to using entire dataset
+  if (is.null(kmer_counts)) {
+    if (is.null(genes)) genes <- database$GeneDB$Name
+    kmer_counts <- get_kmer_counts(database, genes, use_ORFs = use_ORFs)
+  }
+  IDs <- rownames(kmer_counts)
+  isoform_subset <- database$TranscriptDB$PBID %in% IDs
+  genes_long <- unique(database$TranscriptDB$Gene[isoform_subset])
+  genes <- unique(genes_long)
+
+  pca <- stats::prcomp(kmer_counts, scale = F)
+  # in documentation, explain how to lookup points to find PBID
+  rownames(pca$x) <- rownames(kmer_counts)
+
+  eigenvalues <- (pca$sdev ^ 2)[1:max(ceiling(length(genes) / 1.5), 5)]
 
   graphics::plot(eigenvalues, main = "Variances Captured by PCs",
                  xlab = "Principal Component", ylab = "Variance (Eigenvalue)",
-                 cex = exp(-length(gene_list)) * 5 + 1, pch = 19,
+                 cex = exp(-length(genes)) * 5 + 1, pch = 19,
                  col = "darkblue")
-
-  if (use_ORFs) {
-    db <- database$OrfDB
-  } else {
-    db <- database$TranscriptDB
-  }
-  gene_list_long <- db$Gene[db$Gene %in% gene_list]
-
-  pca_list <- list(pca = pca, genes = gene_list, use_ORFs = use_ORFs,
-                   gene_list_long = gene_list_long)
-  return(pca_list)
+  return(pca)
 }
 
 #' @importFrom magrittr %>%
 #' @export
-cluster_PCA <- function(pca_list, num_PCs = -1,
-                        cluster_method = "complete") {
-  # TODO: change from frantically debugged code to actual decent code
-  gene_list <- pca_list$genes
-  pca <- pca_list$pca
-  use_ORFs <- pca_list$use_ORFs
-  gene_list_long <- pca_list$gene_list_long
+cluster_isoforms <- function(database, kmer_counts = NULL,
+                             genes = NULL, use_ORFs = F,
+                             num_clusters = -1, cut_height = -1,
+                             cluster_method = "complete", return = F) {
 
-  if (num_PCs < 1) {
-    num_PCs <- ceiling(log(length(gene_list), base = 2))
+  # if kmer_counts aren't supplied (this uses all default settings!)
+  if (is.null(kmer_counts)) {
+    if (is.null(genes)) genes <- database$GeneDB$Name
+    kmer_counts <- get_kmer_counts(database, genes, use_ORFs = use_ORFs)
   }
-  print(paste("Using ", num_PCs, " principal components.", sep = ""))
+  IDs <- rownames(kmer_counts)
+  isoform_subset <- database$TranscriptDB$PBID %in% IDs
+  genes_long <- database$TranscriptDB$Gene[isoform_subset]
+  genes <- unique(genes_long)
 
-  pca_data <- data.frame(t(pca$x[, num_PCs]))
-  colnames(pca_data) <- gene_list_long
-  clust <- stats::hclust(stats::as.dist(L2_dist(t(pca_data))),
+  clust <- stats::hclust(stats::as.dist(L2_dist(kmer_counts)),
                          method = cluster_method)
-
   dend <- stats::as.dendrogram(clust)
-  labs <- as.numeric(as.factor(gene_list_long)) + 1
+
+  labs <- as.numeric(as.factor(genes_long)) + 1
   labs_ordered <- labs[stats::order.dendrogram(dend)]
-  genes_ordered <- gene_list_long[stats::order.dendrogram(dend)]
   dendextend::labels_colors(dend) <- labs_ordered
-  dend %>% dendextend::set("labels_cex", 0.5) %>%
-           dendextend::set("labels", genes_ordered) %>%
-          graphics::plot(main = "PCA Clustering Dendrogram",
-                         ylab = "Euclidian Distance")
+  IDs_ordered <- IDs[stats::order.dendrogram(dend)]
 
-  CH(clust, max(ceiling(length(gene_list) * 2), 10), pca$x[, num_PCs])
+  dend <- dend %>% dendextend::set("labels_cex", 0.5) %>%
+    dendextend::set("labels", IDs_ordered)
 
-  clust_list <- list(clustering = clust, genes = gene_list,
-                     gene_list_long = gene_list_long)
-  return(clust_list)
-}
+  title <- paste(ifelse(use_ORFs, "ORF", "Isoform"), "Clustering Dendrogram")
 
-#' @importFrom magrittr %>%
-#' @export
-eval_clusters <- function(clust_list, num_clusters = length(clust_list$genes)) {
-  print(paste("Number of clusters chosen: ", num_clusters, sep = ""))
-  clusters <- stats::cutree(clust_list$clustering, k = num_clusters)
-  print(table(clusters, clust_list$gene_list_long))
-
-  if (requireNamespace("dendextend", quietly = TRUE)) {
-    dend <- stats::as.dendrogram(clust_list$clustering)
-    labs <- as.numeric(as.factor(clust_list$gene_list_long)) + 1
-    labs_ordered <- labs[stats::order.dendrogram(dend)]
-    genes_ordered <- clust_list$gene_list_long[stats::order.dendrogram(dend)]
-    dendextend::labels_colors(dend) <- labs_ordered
-    dend %>% dendextend::set("labels_cex", 0.5) %>%
-             dendextend::set("labels", genes_ordered) %>%
-             dendextend::color_branches(k = num_clusters) %>%
-             graphics::plot(main = "PCA Clustering Dendrogram",
-                            ylab = "Euclidian Distance")
-  } else {
-    stop("Error: missing dendextend package.")
+  # optional: color branches of dendrogram by # of clusters or a cut height
+  # TODO: actually test cut_height parts
+  if (num_clusters > 1 && cut_height > 0) {
+    warning("Incompatible args num_clusters and cut_height (don't set both).")
   }
+  if (num_clusters > 1 && cut_height < 0) {
+    dend <- dend %>% dendextend::color_branches(k = num_clusters)
+    if (length(unique(genes)) > 1) {
+      clusters <- stats::cutree(clust, k = num_clusters)
+      print("Gene Separation By Cluster:")
+      Genes <- genes_long # just to fix header of table
+      print(table(clusters, Genes))
+    }
+  }
+  if (num_clusters < 2 && cut_height > 0) {
+    dend <- dend %>% dendextend::color_branches(h = cut_height)
+    if (length(unique(genes)) > 1) {
+      clusters <- stats::cutree(clust, h = cut_height)
+      print("Gene Separation By Cluster:")
+      Genes <- genes_long # just to fix header of table
+      print(table(clusters, Genes))
+    }
+  }
+  graphics::plot(dend, main = title, ylab = "Euclidian Distance")
+
+  if (num_clusters < 2 && cut_height < 0) {
+    CH(clust, max(ceiling(length(genes) * 2), 10), kmer_counts)
+  }
+  if (return) return(clust)
 }
 
-
 #' @export
-plot_PCA <- function(pca_list, database, scale_by = NULL,
+plot_PCA <- function(database, pca, use_ORFs = F, scale_by = NULL,
                      insert_title = NULL) {
-  # TODO: this whole thing needs a major +/- ORFs refactor
-  # TODO: less temporarily fix
-  # remove: gene_list <- pca_list$genes
-  pca <- pca_list$pca
-  use_ORFs <- pca_list$use_ORFs
-  gene_list_long <- pca_list$gene_list_long
+
+  IDs <- rownames(pca$x)
+  genes_long <- database$TranscriptDB$Gene[database$TranscriptDB$PBID %in% IDs]
+  genes <- unique(genes_long)
 
   if (is.null(insert_title)) {
-    insert_title <- ifelse(use_ORFs, "ORF PCA Plot", "Isoform PCA Plot")
+    insert_title <- paste(ifelse(use_ORFs, "ORF", "Isoform"), "PCA Plot")
   }
 
   df <- data.frame(pca$x[, 1:2])
-  colnames(df) <- c("PC1", "PC2")
-  df$Gene <- gene_list_long
+  #colnames(df) <- c("PC1", "PC2")
+  df$Gene <- genes_long
 
-  gene_list <- unique(gene_list_long)
+  if ("length" %in% scale_by | "abundance" %in% scale_by ) {
+    if (use_ORFs) db <- database$OrfDB
+    else db <- database$TranscriptDB
 
-  if ("length" %in% scale_by) {
-    if (use_ORFs) {
-      isoform_subset <- sapply(database$OrfDB$Gene, function(gene_name) {
-        return(gene_name %in% gene_list)
-      })
-      seqs <- database$OrfDB$ORF[isoform_subset]
-    } else {
-      isoform_subset <- sapply(database$TranscriptDB$Gene, function(gene_name) {
-        return(gene_name %in% gene_list)
-      })
-      seqs <- database$TranscriptDB$Transcript[isoform_subset]
+    isoform_subset <- sapply(db$Gene, function(gene_name) {
+      return(gene_name %in% genes)
+    })
+
+    if ("length" %in% scale_by) {
+      if (use_ORFs) seqs <- database$OrfDB$ORF[isoform_subset]
+      else seqs <- database$TranscriptDB$Transcript[isoform_subset]
+
+      df$Length <- sapply(seqs, function(x) nchar(x))
+      # currently this only shows up if you print it...
+      # ...yeah...that's not weird at all
+      print(ggplot(df, aes_string(x = "PC1", y = "PC2", colour = "Gene",
+                                  size = "Length")) +
+              geom_point(alpha = 0.3) +
+              labs(title = insert_title) + theme_classic())
     }
-    df$Length <- sapply(seqs, function(x) nchar(x))
-
-    ggplot(df, aes_string(x = "PC1", y = "PC2", colour = "Gene",
-                          size = "Length")) + geom_point(alpha = 0.3) +
-      labs(title = insert_title) + theme_classic()
-  } else {
     if ("abundance" %in% scale_by) {
-      if (use_ORFs) {
-        db <- database$OrfDB
-      } else {
-        db <- database$TranscriptDB
-      }
-      isoform_subset <- sapply(db$Gene, function(gene_name) {
-        return(gene_name %in% gene_list)
-      })
       df$Abundance <- db$FL_reads[isoform_subset]
 
       ggplot(df, aes_string(x = "PC1", y = "PC2", colour = "Gene",
                             size = "Abundance")) +
         geom_point(alpha = 0.3) + scale_size(trans = "log2") +
         labs(title = insert_title) + theme_classic()
-    } else {
-      ggplot(df, aes_string(x = "PC1", y = "PC2", colour = "Gene")) +
-        geom_point(alpha = 0.3, size = 3) + labs(title = insert_title) +
-        theme_classic()
     }
+  } else {
+    ggplot(df, aes_string(x = "PC1", y = "PC2", colour = "Gene")) +
+      geom_point(alpha = 0.3, size = 3) +
+      labs(title = insert_title) + theme_classic()
   }
 }
 
+
 #' @export
-plot_3D_PCA <- function(pca_list, database, scale_by = NULL,
+plot_3D_PCA <- function(database, pca, use_ORFs = F, scale_by = NULL,
                         insert_title = NULL) {
-  if (!(requireNamespace("rgl", quietly = T) &
-        requireNamespace("car", quietly = T))) {
-    stop("Error: you need the rgl and car packages for 3D PCA plots.")
+
+  if (!(requireNamespace("plotly", quietly = T))) {
+    stop("Error: you need the plotly package for 3D PCA plots.")
     return(NULL)
   }
-  pca <- pca_list$pca
-  use_ORFs <- pca_list$use_ORFs
-  gene_list_long <- pca_list$gene_list_long
-  gene_list <- unique(gene_list_long)
-
   if (is.null(insert_title)) {
-    insert_title <- ifelse(use_ORFs, "ORF PCA Plot", "Isoform PCA Plot")
+    insert_title <- paste(ifelse(use_ORFs, "ORF", "Isoform"), "PCA Plot")
   }
 
-  if ("length" %in% scale_by) {
-    if (use_ORFs) {
-      isoform_subset <- sapply(database$OrfDB$Gene, function(gene_name) {
-        return(gene_name %in% unique(gene_list_long))
-      })
-      seqs <- database$OrfDB$ORF[isoform_subset]
-    } else {
-      isoform_subset <- sapply(database$TranscriptDB$Gene, function(gene_name) {
-        return(gene_name %in% unique(gene_list_long))
-      })
-      seqs <- database$TranscriptDB$Transcript[isoform_subset]
+  IDs <- rownames(pca$x)
+  genes_long <- database$TranscriptDB$Gene[database$TranscriptDB$PBID %in% IDs]
+  genes <- unique(genes_long)
+
+  df <- data.frame(pca$x[, 1:3])
+  df$Gene <- genes_long
+  df$ID <- IDs
+
+  if ("length" %in% scale_by | "abundance" %in% scale_by ) {
+    if (use_ORFs) db <- database$OrfDB
+    else db <- database$TranscriptDB
+
+    isoform_subset <- sapply(db$Gene, function(gene_name) {
+      return(gene_name %in% genes)
+    })
+
+    if ("length" %in% scale_by) {
+      if (use_ORFs) seqs <- database$OrfDB$ORF
+      else seqs <- database$TranscriptDB$Transcript
+      seqs <- seqs[isoform_subset]
+
+      df$Length <- sapply(seqs, function(x) nchar(x))
+      plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
+                             size = ~Length, text = ~paste('ID:', ID)) %>%
+                             add_markers()
     }
-    seq_lengths <- sapply(seqs, function(x) nchar(x))
-
-    car::scatter3d(x = pca$x[, 1], y = pca$x[, 2], z = pca$x[, 3],
-                   groups = as.factor(gene_list_long),
-                   radius = seq_lengths,
-                   grid = FALSE, surface = FALSE)
-
-  } else {
     if ("abundance" %in% scale_by) {
-      if (use_ORFs) {
-        db <- database$OrfDB
-      } else {
-        db <- database$TranscriptDB
-      }
-      isoform_subset <- sapply(db$Gene, function(gene_name) {
-        return(gene_name %in% gene_list)
-      })
-      abundances <- db$FL_reads[isoform_subset]
-
-      car::scatter3d(x = pca$x[, 1], y = pca$x[, 2], z = pca$x[, 3],
-                     groups = as.factor(gene_list_long),
-                     radius = log10(abundances),
-                     grid = FALSE, surface = FALSE)
-    } else {
-      car::scatter3d(x = pca$x[, 1], y = pca$x[, 2], z = pca$x[, 3],
-                     groups = as.factor(gene_list_long),
-                     grid = FALSE, surface = FALSE)
+      df$Abundance <- db$FL_reads[isoform_subset]
+      plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
+                             size = ~Abundance, text = ~paste('ID:', ID)) %>%
+                             add_markers()
     }
+  } else {
+    plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
+                           text = ~paste('ID:', ID)) %>% add_markers()
   }
+  sink_var <- suppressWarnings(print(plt))
 }

@@ -31,6 +31,7 @@ DB_all <- process_db(rawDB, gene_ID_table)
 example_gene1 <- gene_ID_table$Name[17]
 example_gene2 <- gene_ID_table$Name[18]
 example_gene_family <- gene_ID_table$Name[23:26]
+example_gene_family2 <- gene_ID_table$Name[10:11]
 ```
 
 ### Step 3: Optionally, Filter Database By Exon Count, Abundance, or Truncated Transcripts
@@ -73,6 +74,7 @@ write_gff_data(filter_top_gff(DB_filter_4ex_95perc, 25), "~/IsoDB_Data/fullfilte
 
 ```{r}
 plot_N50_N75(DB_filter_4ex_95perc)
+# you can choose to look at only a subset of genes, unique ORFs instead of transcripts, or other customizations
 plot_N50_N75(DB_filter_4ex_95perc, use_ORFs = T)
 plot_N50_N75(DB_filter_4ex_95perc, genes_to_include = example_gene_family, insert_title = "Gene Family Statistics")
 ```
@@ -97,49 +99,76 @@ plot_exon_dist(DB_filter_4ex_95perc, example_gene1)
 plot_exon_dist(DB_filter_4ex_95perc, example_gene2, sum_dist = F)
 ```
 
-### PCA + Clustering: Isoforms
-
-```{r}
-# perform PCA on vectorizations of isoform transcripts
-PCA <- kmer_PCA(DB_filter_4ex_95perc, gene_list = c(example_gene1, example_gene2))
-
-# cluster isoforms based on PCA transformation
-clust <- cluster_PCA(PCA)
-eval_clusters(clust, num_clusters = 2)
-
-# or just plot isoforms by their first 2 PCs...
-plot_PCA(PCA, DB_filter_4ex_95perc)
-plot_PCA(PCA, DB_filter_4ex_95perc, scale_by = "length")
-plot_PCA(PCA, DB_filter_4ex_95perc, scale_by = "abundance")
-
-# ...or their first 3 PCs
-plot_3D_PCA(PCA, DB_filter_4ex_95perc)
-plot_3D_PCA(PCA, DB_filter_4ex_95perc, scale_by = "length")
-plot_3D_PCA(PCA, DB_filter_4ex_95perc, scale_by = "abundance")
-```
-
-### PCA + Clustering: ORFs
+### PCA of Isoform Sequences
 
 ```{r}
 # perform PCA on vectorizations of ORF peptide sequences
-prot_PCA <- kmer_PCA(DB_filter_4ex_95perc, gene_list = c(example_gene1, example_gene2), use_ORFs = T)
+counts <- get_kmer_counts(DB_filter_4ex_95perc, genes = c(example_gene1, example_gene2))
+pca <- kmer_PCA(DB_filter_4ex_95perc, counts)
 
-# cluster ORFs based on PCA transformation
-prot_clust <- cluster_PCA(prot_PCA)
-eval_clusters(prot_clust, num_clusters = 2)
-
-# or just plot ORFs by their first 2 PCs...
-plot_PCA(prot_PCA, DB_filter_4ex_95perc)
-plot_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "length")
-plot_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "abundance")
-
-# ...or their first 3 PCs
-plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc)
-plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "length")
-plot_3D_PCA(prot_PCA, DB_filter_4ex_95perc, scale_by = "abundance")
+# plot ORFs by their first 2 PCs...
+plot_PCA(DB_filter_4ex_95perc, pca)
+plot_PCA(DB_filter_4ex_95perc, pca, scale_by = "length")
+plot_PCA(DB_filter_4ex_95perc, pca, scale_by = "abundance")
+# ... or first 3 PCs
+plot_3D_PCA(DB_filter_4ex_95perc, pca)
+plot_3D_PCA(DB_filter_4ex_95perc, pca, scale_by = "length")
+plot_3D_PCA(DB_filter_4ex_95perc, pca, scale_by = "abundance")
 ```
 
-### Splicing Heatmaps
+### Hierarchical Clustering of Isoforms
+
+```{r}
+# cluster isoforms (or ORFs) into dendrograms
+# if you don't supply kmer_counts, they will be calculated with default settings
+cluster_isoforms(DB_filter_4ex_95perc, genes = example_gene_family2)
+
+# if you create kmer counts first, you can pass them into functions multiple times
+# this saves time if your dataset is very large
+counts <- get_kmer_counts(DB_filter_4ex_95perc, genes = example_gene_family2)
+
+# evaluate clusterings at different #s of clusters or cut heights
+cluster_isoforms(DB_filter_4ex_95perc, counts, num_clusters = 4)
+cluster_isoforms(DB_filter_4ex_95perc, counts, cut_height = 0.0002)
+```
+
+### PCA and Clusrering of ORFs
+
+```{r}
+# everything works with ORF peptide sequences, too
+counts <- get_kmer_counts(DB_filter_4ex_95perc, genes = example_gene_family2, use_ORFs = T)
+pca <- kmer_PCA(DB_filter_4ex_95perc, counts, use_ORFs = T)
+
+# cluster ORFs
+cluster_isoforms(DB_filter_4ex_95perc, counts, use_ORFs = T)
+
+# plot ORFs by their first 2 or 3 PCs
+plot_PCA(DB_filter_4ex_95perc, pca, use_ORFs = T)
+plot_3D_PCA(DB_filter_4ex_95perc, pca, use_ORFs = T)
+```
+
+### t-SNE
+
+```{r}
+# can also visualize isoform populations using t-SNE
+# note: this is the same counts data that PCA takes in
+counts <- get_kmer_counts(DB_filter_4ex_95perc, genes = c(example_gene1, example_gene2))
+
+# In 2D:
+tsne <- kmer_tSNE(DB_filter_4ex_95perc, counts, perplexity = 10, dims = 2)
+plot_tSNE(DB_filter_4ex_95perc, tsne)
+plot_tSNE(DB_filter_4ex_95perc, tsne, scale_by = "abundance")
+# you can force 3D viewing for 2D t-SNE to utilize the plotly UI
+plot_tSNE(DB_filter_4ex_95perc, tsne, force_3D = T)
+plot_tSNE(DB_filter_4ex_95perc, tsne, scale_by = "abundance", force_3D = T)
+
+# In 3D:
+tsne3D <- kmer_tSNE(DB_filter_4ex_95perc, counts, perplexity = 10, dims = 3)
+plot_tSNE(DB_filter_4ex_95perc, tsne3D, force_3D = T)
+```
+
+
+### Splicing Heatmaps (like Sashimi Plots)
 
 ```{r}
 # look at the alternative splicing event frequencies across one gene
@@ -154,14 +183,12 @@ plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 10, zoom_in = 
 plot_splicing(DB_filter_4ex_95perc, example_gene2, max_isoforms = 10, zoom_in = c(64680000, 64694500))
 ```
 
-
 ### Exon Correlation Heatmaps
-
 
 ```{r}
 # this requires inputting a file of named exon sequences
 # shows exon co-splicing correlations
-plot_exon_correlations(DB_filter_4ex_95perc, "~/IsoDB_Data/example_exons.tsv", example_gene2, exons_to_include = c("01", "02", "03", "04", "05", "06", "07", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"))
+plot_exon_correlations(DB_filter_4ex_95perc, "~/IsoDB_Data/example_exons.tsv", example_gene2, exons_to_include = c("01", "02", "03", "04", "05", "06", "07", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"))
 
 # can also override weighting the correlation by transcript abundance
 # optionally, draw the heatmap symmetrically (showing both triangles)
