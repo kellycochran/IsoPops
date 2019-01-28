@@ -4,7 +4,7 @@ kmer_tSNE <- function(database, kmer_counts = NULL, genes = NULL,
                       use_ORFs = F, verbose = T) {
 
   if (!(requireNamespace("Rtsne", quietly = T))) {
-    stop("Error: you need the plotly package for 3D PCA plots.")
+    stop("Error: you need the Rtsne package to perform t-SNE.")
     return(NULL)
   }
   # I require thee to input thy own choice of a perplexity value.
