@@ -1,7 +1,7 @@
 Package: IsoDB
 Type: Package
 Title: Framework for Analyzing Output of PacBio Sequencing Experiments
-Version: 0.2.0
+Version: 0.3.0
 Author: Kelly Cochran <kelly.cochran@duke.edu>
 Maintainer: Kelly Cochran <kelly.cochran@duke.edu>
 Description: Functions for assembling datasets generated from PacBio's IsoSeq
@@ -32,10 +32,11 @@ Suggests:
     text2vec,
     dendextend,
     clusterCrit,
-    car,
-    rgl
+    plotly,
+    Rtsne
 RoxygenNote: 6.0.1
 Collate: 
+    'tSNE_functions.R'
     'PCA_functions.R'
     'database_compiling_functions.R'
     'internal_database_compiling_functions.R'
