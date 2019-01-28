@@ -254,7 +254,7 @@ add_ORF_sequences <- function(transcriptDB, ORF_filename) {
   # the ORF file comes from SQANTI's ORF predictions
   print("Loading ORFs...")
   if (!is_tsv_format(ORF_filename)) {
-    tmpfile <- get_tmp_tsv_file(ORF_filename, ORF_file = T)
+    tmpfile <- get_tmp_tsv_file(ORF_filename, ORFs = T)
     ORFs <- read_tsv_file(tmpfile, get_prefix = F)
   } else {
     ORFs <- read_tsv_file(ORF_filename, get_prefix = F)
