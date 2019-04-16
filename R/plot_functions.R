@@ -263,7 +263,7 @@ plot_counts <- function(database, use_log = F,
   colnames(melted) <- c("Gene", "Statistic", "Count")
   melted$Statistic <- paste(" ", melted$Statistic) # fix legend spacing
 
-  ggplot(melted, aes_string(x = "Gene", y = "Count")) +
+  ggplot(melted, aes_string(fill = "Statistic", x = "Gene", y = "Count")) +
     geom_bar(aes_string(fill = "Statistic"), stat = "identity",
                                              position = "dodge") +
     labs(title = insert_title) + xlab("Gene") +
@@ -275,7 +275,9 @@ plot_counts <- function(database, use_log = F,
           axis.ticks = element_blank(), legend.title = element_blank(),
           legend.position = ifelse("Counts" %in% ylabel, "right", "none"),
           panel.background = element_blank(),
-          axis.line = element_line(colour = "black", size = 0.2))
+          axis.line = element_line(colour = "black", size = 0.2)) +
+  geom_text(aes_string(fill = "Statistic", label = "Count"), vjust = -0.5,
+            color = "black", size = 2, position = position_dodge(width = 0.9))
 }
 
 #' Gene N50/N75 Barplot
@@ -339,6 +341,8 @@ plot_N50_N75 <- function(database, use_ORFs = F,
     ggplot(melted, aes_string(x = "Gene", y = "Count")) +
       geom_bar(aes_string(fill = "Statistic"),
                stat = "identity", position = "dodge") +
+      geom_text(aes_string(fill = "Statistic", label = "Count"), vjust = -0.5,
+                color = "black", size = 2, position = position_dodge(width = 0.9)) +
       xlab("Gene") + ylab(y_axis_label) + labs(title = insert_title) +
       scale_y_continuous(expand = c(0, 0)) +
       theme(axis.text.x = element_text(angle = 60, hjust = 1),
@@ -346,4 +350,92 @@ plot_N50_N75 <- function(database, use_ORFs = F,
             panel.background = element_blank(),
             axis.line = element_line(colour = "black", size = 0.2))
   }
+}
+
+
+#' @export
+plot_treemap <- function(database, use_ORFs = F, insert_title = NULL) {
+  if (!(requireNamespace("treemapify", quietly = T))) {
+    stop("Error: treemapify packages required.")
+    return(NULL)
+  }
+  if (use_ORFs) {
+    db <- database$OrfDB[, c("PBID", "FL_reads", "Gene")]
+    db$PBID <- as.character(seq_len(nrow(db)))
+    if (is.null(insert_title)) insert_title <- "ORF Distributions"
+  } else {
+    db <- database$TranscriptDB[, c("PBID", "FL_reads", "Gene")]
+    if (is.null(insert_title)) insert_title <- "Isoform Distributions"
+  }
+
+  ggplot(db, aes_string(area = "FL_reads", group = "Gene",
+                        fill = "Gene", subgroup = "Gene",
+                        label = "PBID", subgroup2 = "PBID")) +
+    treemapify::geom_treemap() +
+    treemapify::geom_treemap_subgroup2_border(colour = "black", size = 0.25) +
+    treemapify::geom_treemap_subgroup_border(colour = "black", size = 0.75) +
+    treemapify::geom_treemap_subgroup_text(colour = "white",
+                                           place = "center",
+                                           fontface = "italic") +
+    theme(legend.position = "none") + labs(title = insert_title)
+}
+
+#' @export
+plot_Shannon_index <- function(database, use_ORFs = F, insert_title = NULL) {
+  if (use_ORFs) {
+    if (!("ORFShannon" %in% colnames(database$GeneDB))) {
+      stop("Error: ORF Shannon index not calculated in this database.")
+      return(NULL)
+    }
+    db <- database$GeneDB[, c("Name", "ORFShannon")]
+    db$PBID <- as.character(seq_len(nrow(db)))
+    if (is.null(insert_title)) insert_title <- "ORF Shannon Index"
+  } else {
+    if (!("Shannon" %in% colnames(database$GeneDB))) {
+      stop("Error: isoform Shannon index not calculated in this database.")
+      return(NULL)
+    }
+    db <- database$GeneDB[, c("Name", "Shannon")]
+    if (is.null(insert_title)) insert_title <- "Isoform Shannon Index"
+  }
+  names(db) <- c("Gene", "Shannon_Index")
+  buffer <- (max(db$Shannon_Index) - min(db$Shannon_Index)) * 0.025
+  db$Max <- rep(max(db$Shannon_Index) + buffer, nrow(db))
+  db$Min <- rep(min(db$Shannon_Index) - buffer, nrow(db))
+  db <- db[order(db$Shannon_Index), ]
+  db$Gene <- factor(db$Gene, levels = db$Gene)
+
+  ggplot(db, aes_string(x = "Gene", y = "Shannon_Index", colour = "Shannon_Index")) +
+    geom_segment(aes_string(x = "Gene", xend = "Gene", y = "Min", yend = "Max"),
+                 linetype = "dashed", size = 0.1, colour = "black") +
+    geom_point(size = 3) + scale_y_continuous(expand = c(0, 0)) +
+    scale_colour_gradientn(colours = c("blue", "red")) + ylab("Shannon Index") +
+    labs(title = insert_title) + coord_flip() + theme_classic() +
+    theme(axis.ticks.y = element_blank(), legend.position = "none")
+}
+
+#' @export
+plot_length_dist <- function(database, use_ORFs = F, bins = 200,
+                             horiz_spread = 0.3, insert_title = NULL) {
+  if (use_ORFs) {
+    if (is.null(database$OrfDB)) {
+      stop("Error: ORFs not included in this database.")
+      return(NULL)
+    }
+    db <- database$OrfDB[, c("Gene", "ORFLength")]
+    if (is.null(insert_title)) insert_title <- "Unique ORF Length Distributions"
+  } else {
+    db <- database$TranscriptDB[, c("Gene", "TranscriptLength")]
+    if (is.null(insert_title)) insert_title <- "Transcript Length Distributions"
+  }
+  names(db) <- c("Gene", "Length")
+  len_range <- max(db$Length) - min(db$Length)
+  binwidth <- ceiling(len_range / bins)
+
+  ggplot(db, aes_string(x = "Gene", y = "Length")) +
+    geom_dotplot(binaxis = 'y', dotsize = 1, binwidth = binwidth,
+                 method = "histodot", stackdir = 'center',
+                 stackratio = horiz_spread) +
+    labs(title = insert_title) + theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 }

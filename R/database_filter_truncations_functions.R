@@ -96,21 +96,21 @@ filter_truncations <- function(database) {
 
 
 # internal
-check_for_match <- function(gene_gff, transcript, max_start_pos_strand,
+check_for_match <- function(gene_gff, transcript1, max_start_pos_strand,
                             max_start_neg_strand, other_ID) {
   # Proceed with a lot of caution.
 
-  other_transcript <- gene_gff[gene_gff$PBID == other_ID, ]
-  other_transcript$PBID <- NULL
+  transcript2 <- gene_gff[gene_gff$PBID == other_ID, ]
+  transcript2$PBID <- NULL
 
-  if (dim(other_transcript)[1] >= dim(transcript)[1]) {
+  if (dim(transcript2)[1] >= dim(transcript1)[1]) {
     # Attempt to align exon starts between transcripts.
     # Assume best alignment has minimum number of unmatched *starts*
-    nonmatch_starts <- min(sapply(seq_len(length(other_transcript$Start)
-                                          - length(transcript$Start) + 1),
+    nonmatch_starts <- min(sapply(seq_len(length(transcript2$Start)
+                                          - length(transcript1$Start) + 1),
                                   function(i) {
-                                    sum(!(other_transcript$Start[i:(i + length(transcript$Start) - 1)]
-                                          %in% transcript$Start))
+                                    sum(!(transcript2$Start[i:(i + length(transcript1$Start) - 1)]
+                                          %in% transcript1$Start))
                                   }))
 
     # Multiple exon start positions don't line up between the two transcripts,
@@ -118,13 +118,13 @@ check_for_match <- function(gene_gff, transcript, max_start_pos_strand,
     # Exit early with a NO
     if (nonmatch_starts > 1) return(FALSE)
 
-    # Attempt to align exon starts between transcripts.
+    # Attempt to align exon end between transcripts.
     # Assume best alignment has minimum number of unmatched *ends*
-    nonmatch_ends <- min(sapply(1:(length(other_transcript$End)
-                                   - length(transcript$End) + 1),
+    nonmatch_ends <- min(sapply(1:(length(transcript2$End)
+                                   - length(transcript1$End) + 1),
                                 function(i) {
-                                  sum(!(other_transcript$End[i:(i + length(transcript$End) - 1)]
-                                        %in% transcript$End))
+                                  sum(!(transcript2$End[i:(i + length(transcript1$End) - 1)]
+                                        %in% transcript1$End))
                                 }))
 
     # Multiple exon end positions don't line up between the two transcripts,
@@ -145,16 +145,17 @@ check_for_match <- function(gene_gff, transcript, max_start_pos_strand,
     # and then check for a match.
 
     # First check if starts "almost" match
-    starts <- transcript$Start[-1]
-    other_starts <- other_transcript$Start[-1]
+    starts <- transcript1$Start[-1]
+    other_starts <- transcript2$Start[-1]
     starts_almost_match <- any(
       sapply(1:(length(other_starts) - length(starts) + 1), function(i) {
         all(other_starts[i:(i + length(starts) - 1)] %in% starts)
       }))
 
-    # Next check ends "almost" match
-    ends <- transcript$End[-length(transcript$End)]
-    other_ends <- other_transcript$End[-length(other_transcript$End)]
+    # Next check if ends "almost" match
+    # TODO: test if this is really the correct reverse complement approach
+    ends <- transcript1$End[-length(transcript1$End)]
+    other_ends <- transcript2$End[-length(transcript2$End)]
     ends_almost_match <- any(
       sapply(1:(length(other_ends) - length(ends) + 1), function(i) {
         all(other_ends[i:(i + length(ends) - 1)] %in% ends)
@@ -163,20 +164,20 @@ check_for_match <- function(gene_gff, transcript, max_start_pos_strand,
     # Then see if a match can be called
 
     # If strand is positive:
-    if (transcript$Strand[1] == "+"
+    if (transcript1$Strand[1] == "+"
         && starts_almost_match && ends_match
         # other transcript needs to be larger than main transcript:
-        && nrow(other_transcript) > nrow(transcript)
-        && transcript$Start[1] > other_transcript$Start[
-          which(other_transcript$End %in% transcript$End)[1]])  {
+        && nrow(transcript2) > nrow(transcript1)
+        && transcript1$Start[1] > transcript2$Start[ # >=? test
+          which(transcript2$End %in% transcript1$End)[1]]) {
       return(TRUE)
     } else {
-      # If strand is negative:
+      # If strand is negative:          ### test
       if (ends_almost_match && starts_match
           # other transcript needs to be larger than main transcript:
-          && nrow(other_transcript) > nrow(transcript)
-          && transcript$End[length(transcript$End)] < other_transcript$End[
-            max(which(other_transcript$Start %in% transcript$Start))]) {
+          && nrow(transcript2) > nrow(transcript1)
+          && transcript1$End[length(transcript1$End)] < transcript2$End[
+            max(which(transcript2$Start %in% transcript1$Start))]) {
         return(TRUE)
       }
     }
@@ -185,21 +186,21 @@ check_for_match <- function(gene_gff, transcript, max_start_pos_strand,
     # the start of the main transcript. So now we try to ignore the end of the
     # last exon of the **gene** (not isoform), which is likely UTR, and see if
     # a match happens.
-    if (transcript$Strand[1] == "+") {
+    if (transcript1$Strand[1] == "+") {
       if (ends_almost_match && starts_almost_match
-          && nrow(other_transcript) > nrow(transcript)
-          && transcript$Start[1] > other_transcript$Start[
-            which(other_transcript$End %in% transcript$End)[1]]
-          && transcript$End[length(transcript$End)] > max_start_pos_strand) {
+          && nrow(transcript2) > nrow(transcript1)
+          && transcript1$Start[1] > transcript2$Start[
+            which(transcript2$End %in% transcript1$End)[1]]
+          && transcript1$End[length(transcript1$End)] > max_start_pos_strand) {
         return(TRUE)
       }
     } else {
       # If strand is negative:
       if (ends_almost_match && starts_almost_match
-          && nrow(other_transcript) > nrow(transcript)
-          && transcript$End[length(transcript$End)] < other_transcript$End[
-            max(which(other_transcript$Start %in% transcript$Start))]
-          && transcript$Start[1] < max_start_neg_strand) {
+          && nrow(transcript2) > nrow(transcript1)
+          && transcript1$End[length(transcript1$End)] < transcript2$End[
+            max(which(transcript2$Start %in% transcript1$Start))]
+          && transcript1$Start[1] < max_start_neg_strand) {
         return(TRUE)
       }
     }

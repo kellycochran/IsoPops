@@ -8,7 +8,7 @@ kmer_tSNE <- function(database, kmer_counts = NULL, genes = NULL,
     return(NULL)
   }
   # I require thee to input thy own choice of a perplexity value.
-  print(paste("Using perplexity of", perplexity, ".", sep = ""))
+  print(paste("Using perplexity of ", perplexity, ".", sep = ""))
 
   # if kmer_counts aren't supplied (this uses all default settings!)
   # if kmer_counts aren't supplied, need to supply genes
@@ -67,7 +67,8 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
       if (threeD) {
         plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
                                color = ~Gene, size = ~Length,
-                               text = ~paste('ID:', ID)) %>% add_markers()
+                               text = ~paste('ID:', ID)) %>%
+               plotly::add_markers()
       } else {
         print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene",
                                     size = "Length")) +
@@ -81,7 +82,8 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
       if (threeD) {
         plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
                                color = ~Gene, size = ~Abundance,
-                               text = ~paste('ID:', ID)) %>% add_markers()
+                               text = ~paste('ID:', ID)) %>%
+               plotly::add_markers()
       } else {
         print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene",
                                     size = "Abundance")) +
@@ -94,7 +96,7 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
     if (threeD) {
       plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
                              color = ~Gene, text = ~paste('ID:', ID)) %>%
-        add_markers()
+             plotly::add_markers()
     } else {
       print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene")) +
               geom_point(alpha = 0.3, size = 3) +
