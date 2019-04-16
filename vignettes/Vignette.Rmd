@@ -99,6 +99,21 @@ plot_exon_dist(DB_filter_4ex_95perc, example_gene1)
 plot_exon_dist(DB_filter_4ex_95perc, example_gene2, sum_dist = F)
 ```
 
+```{r}
+plot_treemap(DB_filter_4ex_95perc)
+plot_treemap(DB_filter_4ex_95perc, use_ORFs = T)
+```
+
+```{r}
+plot_Shannon_index(DB_filter_4ex_95perc)
+plot_Shannon_index(DB_filter_4ex_95perc, use_ORFs = T)
+```
+
+```{r}
+plot_length_dist(DB_filter_4ex_95perc)
+plot_length_dist(DB_filter_4ex_95perc, use_ORFs = T, horiz_spread = 0.7)
+```
+
 ### PCA of Isoform Sequences
 
 ```{r}
@@ -132,7 +147,7 @@ cluster_isoforms(DB_filter_4ex_95perc, counts, num_clusters = 4)
 cluster_isoforms(DB_filter_4ex_95perc, counts, cut_height = 0.0002)
 ```
 
-### PCA and Clusrering of ORFs
+### PCA and Clustering of ORFs
 
 ```{r}
 # everything works with ORF peptide sequences, too
@@ -152,10 +167,10 @@ plot_3D_PCA(DB_filter_4ex_95perc, pca, use_ORFs = T)
 ```{r}
 # can also visualize isoform populations using t-SNE
 # note: this is the same counts data that PCA takes in
-counts <- get_kmer_counts(DB_filter_4ex_95perc, genes = c(example_gene1, example_gene2))
+counts <- get_kmer_counts(DB_filter_4ex_95perc)#, genes = c(example_gene1, example_gene2))
 
 # In 2D:
-tsne <- kmer_tSNE(DB_filter_4ex_95perc, counts, perplexity = 10, dims = 2)
+tsne <- kmer_tSNE(DB_filter_4ex_95perc, counts, iterations = 5000, perplexity = 40, dims = 2)
 plot_tSNE(DB_filter_4ex_95perc, tsne)
 plot_tSNE(DB_filter_4ex_95perc, tsne, scale_by = "abundance")
 # you can force 3D viewing for 2D t-SNE to utilize the plotly UI

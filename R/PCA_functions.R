@@ -135,9 +135,11 @@ cluster_isoforms <- function(database, kmer_counts = NULL,
                          method = cluster_method)
   dend <- stats::as.dendrogram(clust)
 
-  labs <- as.numeric(as.factor(genes_long)) + 1
-  labs_ordered <- labs[stats::order.dendrogram(dend)]
-  dendextend::labels_colors(dend) <- labs_ordered
+  if (length(genes) > 1) {
+    labs <- as.numeric(as.factor(genes_long)) + 1
+    labs_ordered <- labs[stats::order.dendrogram(dend)]
+    dendextend::labels_colors(dend) <- labs_ordered
+  }
   IDs_ordered <- IDs[stats::order.dendrogram(dend)]
 
   dend <- dend %>% dendextend::set("labels_cex", 0.5) %>%
@@ -264,17 +266,17 @@ plot_3D_PCA <- function(database, pca, use_ORFs = F, scale_by = NULL,
       df$Length <- sapply(seqs, function(x) nchar(x))
       plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
                              size = ~Length, text = ~paste('ID:', ID)) %>%
-                             add_markers()
+                             plotly::add_markers()
     }
     if ("abundance" %in% scale_by) {
       df$Abundance <- db$FL_reads[isoform_subset]
       plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
                              size = ~Abundance, text = ~paste('ID:', ID)) %>%
-                             add_markers()
+                             plotly::add_markers()
     }
   } else {
     plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
-                           text = ~paste('ID:', ID)) %>% add_markers()
+                           text = ~paste('ID:', ID)) %>% plotly::add_markers()
   }
   sink_var <- suppressWarnings(print(plt))
 }
