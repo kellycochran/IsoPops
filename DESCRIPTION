@@ -1,9 +1,9 @@
-Package: IsoDB
+Package: IsoPops
 Type: Package
-Title: Framework for Analyzing Output of PacBio Sequencing Experiments
+Title: Framework for Analyzing Diverse Isoform Populations
 Version: 0.3.1
-Author: Kelly Cochran <kelly.cochran@duke.edu>
-Maintainer: Kelly Cochran <kelly.cochran@duke.edu>
+Author: Kelly Cochran <kelly.cochran36@gmail.com>
+Maintainer: Kelly Cochran <kelly.cochran36@gmail.com>
 Description: Functions for assembling datasets generated from PacBio's IsoSeq
     post-sequencing pipeline, filtering out off-target and artifactual
     transcripts, and analyzing/visualizing the resulting curated
