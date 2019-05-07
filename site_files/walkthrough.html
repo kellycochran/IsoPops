@@ -4,14 +4,14 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title> IsoDB | Walkthrough </title>
+        <title> IsoPops | Walkthrough </title>
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         
     </head>
     <body>
         <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
-            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoDB <span class="faded-white">Version 0.2.0 </span> </a>
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoPops <span class="faded-white">Version 0.3.0 </span> </a>
         </nav>
 
         <div class="container-fluid main-container">
@@ -32,7 +32,7 @@
                     <a class="nav-link" href="#"> Walkthrough <span class="sr-only"> (current) </span></a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="https://github.com/kellycochran/IsoDB"> Source Code </a>
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoPops"> Source Code </a>
                   </li>
                 </ul>
 
@@ -69,12 +69,12 @@
                   <p>Once you have the files needed, the first step is to compile those files into a <a href="DB_objects.html#Raw">Raw Database</a> object. Replacing filenames appropriately, run the following from your R console or within Rstudio:</p>
                     
                   <pre>
-                    library(IsoDB)
+                    library(IsoPops)
                 
-                    transcript_filename &lt;- "~/IsoDB_Data/all_data.fasta"
-                    abundance_filename &lt;- "~/IsoDB_Data/all_data.abundance.txt"
-                    ORF_filename &lt;- "~/IsoDB_Data/all_data.ORFs.fasta"
-                    GFF_filename &lt;- "~/IsoDB_Data/all_data.gff"
+                    transcript_filename &lt;- "~/IsoPops_Data/all_data.fasta"
+                    abundance_filename &lt;- "~/IsoPops_Data/all_data.abundance.txt"
+                    ORF_filename &lt;- "~/IsoPops_Data/all_data.ORFs.fasta"
+                    GFF_filename &lt;- "~/IsoPops_Data/all_data.gff"
 
 rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename, ORF_filename)
                   </pre>
@@ -88,7 +88,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                   </pre>
                 
                   <p>
-                    To finish processing your dataset, you'll need to provide IsoDB with a way to associate PacBio transcript IDs with the genes you're interested in. Because IsoDB is completely annotation and genome free, this gene information just takes the form of a two-column tab-delimited file. List gene names in the first column and PacBio gene ID prefixes in the second, like so:
+                    To finish processing your dataset, you'll need to provide IsoPops with a way to associate PacBio transcript IDs with the genes you're interested in. Because IsoDB is completely annotation and genome free, this gene information just takes the form of a two-column tab-delimited file. List gene names in the first column and PacBio gene ID prefixes in the second, like so:
                   </p>
                     
                   <pre>
@@ -102,7 +102,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                   <p> You can also make a data frame in R directly with the same information and format. Then finish processing the Database by passing in the gene ID table: </p>
                     
                   <pre>
-                    gene_ID_table &lt;- read.table("~/IsoDB_Data/gene_IDs_and_names.tsv", header = T)
+                    gene_ID_table &lt;- read.table("~/IsoPops_Data/gene_IDs_and_names.tsv", header = T)
                     DB_all &lt;- process_db(rawDB, gene_ID_table)
                   </pre>
                     
@@ -116,7 +116,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                     DB_filter_95perc &lt;- filter_db(DB_filter_notrunc, abund_cutoff = 0.95, recalc_abundances = F)
                   </pre>
                     
-                  <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoDB. Check out the <a href="#">Standard Plots</a> and <a href="#">PCA Plots</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoDB/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
+                  <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoPops. Check out the <a href="#">Standard Plots</a> and <a href="#">PCA Plots</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoPops/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
                     
                   <p> Any <a href="DB_objects.html">Database</a> object can be saved and loaded back into memory at a later time. This is recommended once you've processed or filtered a Database (instead of rebuilding the Database every time). </p>
                     
@@ -130,7 +130,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                   
                 <div class="footer text-center">
                   <hr>
-                  IsoDB is licensed under the <a href="https://github.com/kellycochran/IsoDB/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                  IsoPops is licensed under the <a href="https://github.com/kellycochran/IsoPops/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
                 </div> 
               </div>
             </main>
