@@ -245,6 +245,8 @@ plot_3D_PCA <- function(database, pca, use_ORFs = F, scale_by = NULL,
   IDs <- rownames(pca$x)
   genes_long <- database$TranscriptDB$Gene[database$TranscriptDB$PBID %in% IDs]
   genes <- unique(genes_long)
+  cols <- get_colors(length(genes) + 1)
+  cols <- cols[1:length(genes)]
 
   df <- data.frame(pca$x[, 1:3])
   df$Gene <- genes_long
@@ -265,18 +267,22 @@ plot_3D_PCA <- function(database, pca, use_ORFs = F, scale_by = NULL,
 
       df$Length <- sapply(seqs, function(x) nchar(x))
       plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
+                             colors = cols,  ######################
                              size = ~Length, text = ~paste('ID:', ID)) %>%
-                             plotly::add_markers()
+                             plotly::add_markers(opacity = 0.3)
     }
     if ("abundance" %in% scale_by) {
       df$Abundance <- db$FL_reads[isoform_subset]
       plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
+                             colors = cols,  ######################
                              size = ~Abundance, text = ~paste('ID:', ID)) %>%
-                             plotly::add_markers()
+                             plotly::add_markers(opacity = 0.3)
     }
   } else {
     plt <- plotly::plot_ly(df, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Gene,
-                           text = ~paste('ID:', ID)) %>% plotly::add_markers()
+                           colors = cols,  ######################
+                           text = ~paste('ID:', ID)) %>%
+                           plotly::add_markers(opacity = 0.3)
   }
   sink_var <- suppressWarnings(print(plt))
 }

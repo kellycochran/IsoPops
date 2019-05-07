@@ -1,8 +1,9 @@
-IsoDB.Rproj
-
+IsoPops.Rproj
+.gitignore
 .Rbuildignore
 .Rhistory
 .Rproj.user
+.Rdata
 R/.Rapp.history
 man/.Rapp.history
 man/*

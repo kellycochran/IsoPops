@@ -39,6 +39,8 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
   IDs <- rownames(tsne$Y)
   genes_long <- database$TranscriptDB$Gene[database$TranscriptDB$PBID %in% IDs]
   genes <- unique(genes_long)
+  cols <- get_colors(length(genes) + 1)
+  cols <- cols[1:length(genes)]
 
   if (dim(tsne$Y)[2] == 2) {
     df <- data.frame(Axis1 = tsne$Y[, 1], Axis2 = tsne$Y[, 2])
@@ -66,9 +68,9 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
 
       if (threeD) {
         plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
-                               color = ~Gene, size = ~Length,
+                               color = ~Gene, size = ~Length, colors = cols,   ######################
                                text = ~paste('ID:', ID)) %>%
-               plotly::add_markers()
+               plotly::add_markers(opacity = 0.3)
       } else {
         print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene",
                                     size = "Length")) +
@@ -81,9 +83,9 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
       df$Abundance <- db$FL_reads[isoform_subset]
       if (threeD) {
         plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
-                               color = ~Gene, size = ~Abundance,
+                               color = ~Gene, size = ~Abundance, colors = cols,  ######################
                                text = ~paste('ID:', ID)) %>%
-               plotly::add_markers()
+               plotly::add_markers(opacity = 0.3)
       } else {
         print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene",
                                     size = "Abundance")) +
@@ -94,9 +96,9 @@ plot_tSNE <- function(database, tsne, use_ORFs = F, force_3D = F,
     }
   } else {
     if (threeD) {
-      plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3,
+      plt <- plotly::plot_ly(df, x = ~Axis1, y = ~Axis2, z = ~Axis3, colors = cols, ######################
                              color = ~Gene, text = ~paste('ID:', ID)) %>%
-             plotly::add_markers()
+             plotly::add_markers(opacity = 0.3)
     } else {
       print(ggplot(df, aes_string(x = "Axis1", y = "Axis2", colour = "Gene")) +
               geom_point(alpha = 0.3, size = 3) +
