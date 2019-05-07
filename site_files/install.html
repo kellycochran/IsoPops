@@ -4,14 +4,14 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title> IsoDB | Install </title>
+        <title> IsoPops | Install </title>
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         
     </head>
     <body>
         <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
-            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoDB <span class="faded-white">Version 0.2.0 </span> </a>
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoPops <span class="faded-white">Version 0.3.0 </span> </a>
         </nav>
 
         <div class="container-fluid main-container">
@@ -32,7 +32,7 @@
                     <a class="nav-link" href="walkthrough.html"> Walkthrough </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="https://github.com/kellycochran/IsoDB"> Source Code </a>
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoPops"> Source Code </a>
                   </li>
                 </ul>
 
@@ -56,15 +56,15 @@
                 <div class="container mid-page">
                   <h1>Installing</h1>
                   <br>
-                  <p>IsoDB is in the process of being added to the CRAN universe, when it will be possible to install using the standard <code>install.packages()</code> command within R/Rstudio. For now, the code is available for download on Github and can be built into a library in R using only a few commands input to the Terminal:</p>
+                  <p>IsoPops is in the process of being added to the CRAN universe, when it will be possible to install using the standard <code>install.packages()</code> command within R/Rstudio. For now, the code is available for download on Github and can be built into a library in R using only a few commands input to the Terminal:</p>
                     
                   <ol>
                     <li>First, download the package from Github. You may need to unzip the folder.</li>
-                    <li>Confirm that the folder is named "IsoDB" (or rename it if you downloaded it as "IsoDB-[branch name]").</li>
+                    <li>Confirm that the folder is named "IsoPops" (or rename it if you downloaded it as "IsoPops-[branch name]").</li>
                     <li>Open Terminal and navigate to where the package is -- likely your Downloads folder.</li>
-                      <li>Run the command <code>R CMD build IsoDB</code>, and you should see a message ending with <code>building 'IsoDB_[version].tar.gz'</code></li>
-                      <li>Run <code>R CMD INSTALL 'IsoDB_[version].tar.gz'.</code></li>
-                      <li>You should now be able to run <code>library(IsoDB)</code> within R/Rstudio. You're done!</li>
+                      <li>Run the command <code>R CMD build IsoPops</code>, and you should see a message ending with <code>building 'IsoPops_[version].tar.gz'</code></li>
+                      <li>Run <code>R CMD INSTALL 'IsoPops_[version].tar.gz'.</code></li>
+                      <li>You should now be able to run <code>library(IsoPops)</code> within R/Rstudio. You're done!</li>
                   </ol>
                   <br>
                   <p>Another option is through the package devtools, which lets you install from Github using only the console in R/Rstudio:</p>
@@ -74,17 +74,17 @@
                       
                       library(devtools)
                       
-                      install_github("kellycochran", "IsoDB")
+                      install_github("kellycochran", "IsoPops")
                       
-                      library(IsoDB)
+                      library(IsoPops)
                   </pre>
                     
-                  <p>If you encounter issues using part of IsoDB, check that you have all noted dependencies installed. A list of the packages needed for full IsoDB functionality can be found in the "Imports" and "Suggests" section of the <a href="https://github.com/kellycochran/IsoDB/blob/master/DESCRIPTION">DESCRIPTION</a> file. Many of the dependencies are core R packages and come pre-installed with R, so you will likely only need to install one or two package dependencies, depending on which functions you use. </p>
+                  <p>If you encounter issues using part of IsoPops, check that you have all noted dependencies installed. A list of the packages needed for full IsoPops functionality can be found in the "Imports" and "Suggests" section of the <a href="https://github.com/kellycochran/IsoPops/blob/master/DESCRIPTION">DESCRIPTION</a> file. Many of the dependencies are core R packages and come pre-installed with R, so you will likely only need to install one or two package dependencies, depending on which functions you use. </p>
                 </div>
                   
                 <div class="footer text-center">
                   <hr>
-                  IsoDB is licensed under the <a href="https://github.com/kellycochran/IsoDB/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                  IsoPops is licensed under the <a href="https://github.com/kellycochran/IsoPops/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
                 </div> 
               </div>
             </main>
