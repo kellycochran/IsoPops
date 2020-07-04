@@ -199,20 +199,18 @@
                     
                   <h3> Exon-Abundance Distribution Plots </h3>
                     <br>
-                    <div class="centered-plot-pic-small">
-                      <div class="centered-plot-pic-small-inner">
+                    <div class="centered-plot-pic">
                       <img class="card-img-top plot-pic-max-width" src="images/ex_abund_dist_bar.png" alt="Example plot">
-                      </div>
-                      <div class="centered-plot-pic-small-inner">
-                      <img class="card-img-top" src="images/ex_abund_dist_scatter.png" alt="Example plot">
-                      </div>
+                    </div>
+                    <div class="centered-plot-pic">
+                      <img class="card-img-top plot-pic-max-width" src="images/ex_abund_dist_scatter.png" alt="Example plot">
                     </div>
                     <br>
                     
                     <code> plot_exon_dist(database,
                            sum_dist = T, bin_width = 0.02, ...) </code>
 
-                    <br><p>Generates a bar plot showing the abundances of normalized exon counts for one or more genes. If each transcript is represented as the fraction of exons it contains out of the maximum number of exons found in a gene, this plot is merely a histogram of those representations, weighted by the read count for each transcript. Normalized exon percent is along the x-axis, and abundance is along the y-axis. If only one gene name is given, a second plot is generated where the x-axis is not normalized, instead showing the exon count of each transcript individually, and the y-axis is log-transformed.</p>
+                    <br><p>Generates a bar plot showing the abundances of normalized exon counts for one or more genes. If each transcript is represented as the fraction of exons it contains out of the maximum number of exons found in a gene, this plot is merely a histogram of those representations, weighted by the read count for each transcript. Normalized exon percent is along the x-axis, and abundance is along the y-axis. If only one gene name is given, a second plot is generated where the x-axis is not normalized, instead showing the exon count of each transcript individually, and the y-axis is log-transformed. Jitter along the x-axis is added to improve visibility. </p>
 
                   <h5> Arguments </h5>
                     <table class="table table-borderless table-sm">

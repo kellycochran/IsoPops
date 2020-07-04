@@ -172,14 +172,14 @@ h5 {
 }
 
 .centered-plot-pic {
-    width: 500px;
+    width: 600px;
     margin: auto;
     text-align: center;
 }
 
 .plot-pic-max-width{
     width:100%;
-    max-width:500px;
+    max-width:600px;
 }
 
 .centered-plot-pic-small {
