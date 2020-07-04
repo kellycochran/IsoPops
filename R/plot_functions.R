@@ -35,7 +35,7 @@ get_colors <- function(n) {
 #' of abundances from TranscriptDB. Note that OrfDB collapses isoforms with
 #' non-unique transcripts, so abundances may differ significantly.
 #' @param insert_title String to customize the title of the plot.
-#' @return Jellyfish plot.
+#' @return Jellyfish plot (ggplot object).
 #' @examples
 #' \dontrun{
 #' gene_ID_table <- data.frame(ID = c("PB.1"), Name = c("Gene1"))
@@ -132,6 +132,7 @@ jellyfish_plot <- function(database,
 #' @param bin_width The histogram bin width, used only when multiple genes
 #' are input and the x-axis is the fraction of total exons per gene.
 #' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
 #' @examples
 #' \dontrun{
 #' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
@@ -200,7 +201,7 @@ plot_exon_dist <- function(database,
 #' Unique Isoforms Barplot
 #'
 #' Generates a bar plot showing the number of unique isoform
-#' transcripts and unique ORFs for each gene
+#' transcripts and unique ORFs for each gene.
 #'
 #' @param database A compiled Database object.
 #' @param use_log Logical. If true, y-axis is plotted on a log scale (base 2).
@@ -210,6 +211,7 @@ plot_exon_dist <- function(database,
 #' indicating which whould be included in the plot. Default is both and to
 #' give a warning if no ORF information is in the database.
 #' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
 #' @examples
 #' \dontrun{
 #' gene_ID_table <- data.frame(ID = c("PB.1"), Name = c("Gene1"))
@@ -220,7 +222,7 @@ plot_exon_dist <- function(database,
 #' @seealso Database
 #' @export
 plot_counts <- function(database, use_log = F,
-                        genes_to_include = database$GeneDB$Name,
+                        genes_to_include = unique(database$GeneDB$Name),
                         use_counts = c("Isoforms", "ORFs"),
                         insert_title = NULL) {
   # TODO: standardize filtering by gene
@@ -229,7 +231,7 @@ plot_counts <- function(database, use_log = F,
     if ("ORFs" %in% use_counts & "UniqueORFs" %in% colnames(df)) {
       df <- df[order(df$UniqueORFs),]
       df <- df[, c("Name", "Isoforms", "UniqueORFs")]
-      cols <- c("cornflowerblue", "blue4")
+      cols <- c("blue4", "cornflowerblue")
       if (is.null(insert_title)) {
         insert_title <- "Unique Isoforms & ORFs Per Gene"
         ylabel <- "Counts"
@@ -263,20 +265,25 @@ plot_counts <- function(database, use_log = F,
   colnames(melted) <- c("Gene", "Statistic", "Count")
   melted$Statistic <- paste(" ", melted$Statistic) # fix legend spacing
 
+  if (use_log) {
+    upper_lim <- max(melted$Count) * 2
+  } else {
+    upper_lim <- max(melted$Count) * 1.1
+  }
+
   ggplot(melted, aes_string(fill = "Statistic", x = "Gene", y = "Count")) +
-    geom_bar(aes_string(fill = "Statistic"), stat = "identity",
-                                             position = "dodge") +
+    geom_bar(stat = "identity", position = "dodge") +
     labs(title = insert_title) + xlab("Gene") +
     ylab(ifelse(use_log, paste("Log", ylabel, sep = " "), ylabel)) +
     scale_fill_manual(values = cols) +
-    scale_y_continuous(expand = c(0, 0),
+    scale_y_continuous(expand = c(0, 0), limits = c(NA, upper_lim),
                        trans = ifelse(use_log, "log2", "identity")) +
     theme(axis.text.x = element_text(angle = 60, hjust = 1),
           axis.ticks = element_blank(), legend.title = element_blank(),
           legend.position = ifelse("Counts" %in% ylabel, "right", "none"),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black", size = 0.2)) +
-  geom_text(aes_string(fill = "Statistic", label = "Count"), vjust = -0.5,
+  geom_text(aes_string(group = "Statistic", label = "Count"), vjust = -0.5,
             color = "black", size = 2, position = position_dodge(width = 0.9))
 }
 
@@ -292,6 +299,7 @@ plot_counts <- function(database, use_log = F,
 #' @param genes_to_include Vector of gene names to subset from the database.
 #' Default is to plot all genes in the database.
 #' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
 #' @examples
 #' \dontrun{
 #' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
@@ -352,19 +360,45 @@ plot_N50_N75 <- function(database, use_ORFs = F,
   }
 }
 
-
+#' Treemap Plot
+#'
+#' Generates a treemap plot showing how individual transcripts/ORFs and genes
+#'account for abundance within the dataset as a whole.
+#'
+#' @param database A compiled Database object.
+#' @param use_ORFs Logical. Set to TRUE to use abundances from OrfDB instead
+#' of abundances from TranscriptDB. Note that OrfDB collapses isoforms with
+#' non-unique transcripts, so abundances may differ significantly.
+#' @param genes_to_include Vector of gene names to subset from the database.
+#' Default is to plot all genes in the database.
+#' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
+#' @examples
+#' \dontrun{
+#' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
+#' Name = c("Gene1", "Gene2"))
+#' rawDB <- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
+#' DB <- process_db(rawDB, gene_ID_table)
+#' plot_length_dist(DB)
+#' }
+#' @seealso Database
+#' @import ggplot2
 #' @export
-plot_treemap <- function(database, use_ORFs = F, insert_title = NULL) {
+plot_treemap <- function(database, use_ORFs = F,
+                         genes_to_include = unique(database$GeneDB$Name),
+                         insert_title = NULL) {
   if (!(requireNamespace("treemapify", quietly = T))) {
     stop("Error: treemapify packages required.")
     return(NULL)
   }
   if (use_ORFs) {
     db <- database$OrfDB[, c("PBID", "FL_reads", "Gene")]
+    db <- db[db$Gene %in% genes_to_include, ]
     db$PBID <- as.character(seq_len(nrow(db)))
     if (is.null(insert_title)) insert_title <- "ORF Distributions"
   } else {
     db <- database$TranscriptDB[, c("PBID", "FL_reads", "Gene")]
+    db <- db[db$Gene %in% genes_to_include, ]
     if (is.null(insert_title)) insert_title <- "Isoform Distributions"
   }
 
@@ -380,14 +414,40 @@ plot_treemap <- function(database, use_ORFs = F, insert_title = NULL) {
     theme(legend.position = "none") + labs(title = insert_title)
 }
 
+#' Shannon Index Plot
+#'
+#' Generates a plot showing the Shannon Index for isoform/ORF diversity on
+#' the x-axis, and each gene on the y-axis.
+#'
+#' @param database A compiled Database object.
+#' @param use_ORFs Logical. Set to TRUE to use abundances from OrfDB instead
+#' of abundances from TranscriptDB. Note that OrfDB collapses isoforms with
+#' non-unique transcripts, so abundances may differ significantly.
+#' @param genes_to_include Vector of gene names to subset from the database.
+#' Default is to plot all genes in the database.
+#' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
+#' @examples
+#' \dontrun{
+#' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
+#' Name = c("Gene1", "Gene2"))
+#' rawDB <- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
+#' DB <- process_db(rawDB, gene_ID_table)
+#' plot_Shannon_index(DB)
+#' }
+#' @seealso Database
+#' @import ggplot2
 #' @export
-plot_Shannon_index <- function(database, use_ORFs = F, insert_title = NULL) {
+plot_Shannon_index <- function(database, use_ORFs = F,
+                               genes_to_include = unique(database$GeneDB$Name),
+                               insert_title = NULL) {
   if (use_ORFs) {
     if (!("ORFShannon" %in% colnames(database$GeneDB))) {
       stop("Error: ORF Shannon index not calculated in this database.")
       return(NULL)
     }
     db <- database$GeneDB[, c("Name", "ORFShannon")]
+    db <- db[db$Name %in% genes_to_include, ]
     db$PBID <- as.character(seq_len(nrow(db)))
     if (is.null(insert_title)) insert_title <- "ORF Shannon Index"
   } else {
@@ -396,6 +456,7 @@ plot_Shannon_index <- function(database, use_ORFs = F, insert_title = NULL) {
       return(NULL)
     }
     db <- database$GeneDB[, c("Name", "Shannon")]
+    db <- db[db$Name %in% genes_to_include, ]
     if (is.null(insert_title)) insert_title <- "Isoform Shannon Index"
   }
   names(db) <- c("Gene", "Shannon_Index")
@@ -405,17 +466,49 @@ plot_Shannon_index <- function(database, use_ORFs = F, insert_title = NULL) {
   db <- db[order(db$Shannon_Index), ]
   db$Gene <- factor(db$Gene, levels = db$Gene)
 
-  ggplot(db, aes_string(x = "Gene", y = "Shannon_Index", colour = "Shannon_Index")) +
-    geom_segment(aes_string(x = "Gene", xend = "Gene", y = "Min", yend = "Max"),
+  ggplot(db, aes_string(x = "Gene",
+                        y = "Shannon_Index",
+                        colour = "Shannon_Index")) +
+    geom_segment(aes_string(x = "Gene", xend = "Gene",
+                            y = "Min",  yend = "Max"),
                  linetype = "dashed", size = 0.1, colour = "black") +
     geom_point(size = 3) + scale_y_continuous(expand = c(0, 0)) +
-    scale_colour_gradientn(colours = c("blue", "red")) + ylab("Shannon Index") +
+    scale_colour_gradientn(colours = c("blue", "red")) +
+    ylab("Shannon Index") +
     labs(title = insert_title) + coord_flip() + theme_classic() +
     theme(axis.ticks.y = element_blank(), legend.position = "none")
 }
 
+#' Isoform Length Distribution Plot
+#'
+#' Generates a dot plot showing how transcripts/ORFs are distributed in length
+#' for each gene in the database.
+#'
+#' @param database A compiled Database object.
+#' @param use_ORFs Logical. Set to TRUE to use abundances from OrfDB instead
+#' of abundances from TranscriptDB. Note that OrfDB collapses isoforms with
+#' non-unique transcripts, so abundances may differ significantly.
+#' @param bins The number of bins to use in segmenting the range of lengths
+#' over the entire dataset. This parameter determines vertical dot spread.
+#' @param genes_to_include Vector of gene names to subset from the database.
+#' Default is to plot all genes in the database.
+#' @param horiz_spread Numeric. This parameter determines horizontal dot
+#' spread across all the genes visualized.
+#' @param insert_title String to customize the title of the plot.
+#' @return A ggplot object.
+#' @examples
+#' \dontrun{
+#' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
+#' Name = c("Gene1", "Gene2"))
+#' rawDB <- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
+#' DB <- process_db(rawDB, gene_ID_table)
+#' plot_length_dist(DB)
+#' }
+#' @seealso Database
+#' @import ggplot2
 #' @export
 plot_length_dist <- function(database, use_ORFs = F, bins = 200,
+                             genes_to_include = unique(database$GeneDB$Name),
                              horiz_spread = 0.3, insert_title = NULL) {
   if (use_ORFs) {
     if (is.null(database$OrfDB)) {
@@ -423,9 +516,11 @@ plot_length_dist <- function(database, use_ORFs = F, bins = 200,
       return(NULL)
     }
     db <- database$OrfDB[, c("Gene", "ORFLength")]
+    db <- db[db$Gene %in% genes_to_include, ]
     if (is.null(insert_title)) insert_title <- "Unique ORF Length Distributions"
   } else {
     db <- database$TranscriptDB[, c("Gene", "TranscriptLength")]
+    db <- db[db$Gene %in% genes_to_include, ]
     if (is.null(insert_title)) insert_title <- "Transcript Length Distributions"
   }
   names(db) <- c("Gene", "Length")

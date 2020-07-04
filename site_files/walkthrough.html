@@ -106,9 +106,10 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                     DB_all &lt;- process_db(rawDB, gene_ID_table)
                   </pre>
                     
-                  <p> The variable <code>DB_all</code> now contains the same table of transcript information, with added gene info, plus a table of gene-level info, a table of info for each unique ORF, and GFF data. These new tables can be inspected by <code>View(rawDB$GeneDB)</code> and <code>View(rawDB$OrfDB)</code>.</p>
+                  <p> The variable <code>DB_all</code> now contains the same table of transcript information (<code>DB_all$TranscriptDB)</code>), with added gene info, plus a table of gene-level info, a table of info for each unique ORF, and GFF data. These new tables can be inspected by <code>View(DB_all$GeneDB)</code>, <code>View(DB_all$OrfDB)</code>, and
+                  <code>View(DB_all$GffDB)</code>.</p>
                     
-                  <p> If you'd like to filter your dataset before analysis, there are multiple options available. Each filtering operation creates a new <a href="DB_objects.html">Database</a> object, so you can chain filters by using the output of one filtering step as the input for your next filtering step: </p>
+                  <p> If you'd like to filter your dataset before analysis, there are multiple functions available for doing so. Each filtering operation creates a new <a href="DB_objects.html">Database</a> object, so you can chain filters by using the output of one filtering step as the input for your next filtering step: </p>
                 
                   <pre>
                     DB_filter_4ex &lt;- filter_db(DB_all, exon_min_count = 4)
@@ -118,7 +119,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                     
                   <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoPops. Check out the <a href="#">Standard Plots</a> and <a href="#">PCA Plots</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoPops/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
                     
-                  <p> Any <a href="DB_objects.html">Database</a> object can be saved and loaded back into memory at a later time. This is recommended once you've processed or filtered a Database (instead of rebuilding the Database every time). </p>
+                  <p> Any <a href="DB_objects.html">Database</a> object can be saved and loaded back into memory at a later time. This is recommended once you've processed or filtered a Database (so you don't need to rebuild the Database every time). </p>
                     
                   <pre>
                     saveRDS(DB_final, "path/to/file_name.db")  <span class="comment"> # saves the DB_final Database to a specific file name </span> 

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title> IsoPops | Jellyfish Plots </title>
+        <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+    </head>
+    <body>
+        <nav class="navbar navbar-dark fixed-top flex-md-nowrap shadow navbar-bg">
+            <a class="navbar-brand col-sm-3 col-md-9 mr-0" href="#"> IsoPops <span class="faded-white">Version 0.3.1 </span> </a>
+        </nav>
+
+        <div class="container-fluid main-container">
+          <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-dark sidebar sticky-top sticky-offset">
+              <div class="sidebar-sticky sticky-top sticky-offset">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../index.html"> Home </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="about.html"> About </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#"> Install </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="walkthrough.html"> Walkthrough </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/kellycochran/IsoPops"> Source Code </a>
+                  </li>
+                </ul>
+
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                  <span class="sidebar-heading"> Docs </span>
+                  <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                  </a>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link" href="DB_objects.html"> Database Objects </a>
+                  </li>
+                </ul>
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                  <span class="sidebar-heading"> Plot Functions </span>
+                  <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                  </a>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link" href="plots.html"> Standard Plots </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="jellyfish.html"> Jellyfish Plots <span class="sr-only"> (current) </span> </a>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+              <div class="">
+                <div class="container mid-page">
+                  <h3> Jellyfish Plots </h3>
+                    <br>
+                    <div class="centered-plot-pic">
+                      <img class="card-img-top" src="images/jellyfish_full.png" alt="Example plot">
+                    </div>
+                    <br>
+                    
+                    <code> jellyfish_plot(database, genes_to_include = unique(database$GeneDB$Name), stabilize_colors = F, use_ORFs = F, ...) </code>
+
+                    <br><p>Generates a plot showing the log cumulative isoform abundance distribution for one or more genes. Normalized read count is along the x-axis, and log cumulative isoform count is along the y-axis. Each gene is represented by one line, allowing for comparison between the skewness of relative abundance of isoforms between multiple genes.</p>
+
+                  <h5> Arguments </h5>
+                    <table class="table table-borderless table-sm">
+                      <tbody>
+                        <tr>
+                          <th scope="row" style="width: 20%"><code>database</code></th>
+                          <td>A compiled Database object.</td>
+                        </tr>
+                        <tr>
+                          <th scope="row"><code>genes_to_include</code></th>
+                          <td>Vector of gene names to subset from the database. Default is to plot all genes in the database.</td>
+                        </tr>
+                        <tr>
+                          <th scope="row"><code>dot_size</code></th>
+                          <td>Size of points to plot. Default is to scale this value by the number of genes being plotted, but can be manually set for appearance.</td>
+                        </tr>
+                        <tr>
+                          <th scope="row"><code>stabilize_colors</code></th>
+                          <td>Logical. Set to TRUE if you would like to plot a subset of genes, and have the colors match the colors used when all genes are plotted. Default is FALSE, and colors are generated according to the number of genes currently being plotted.</td>
+                        </tr>
+                        <tr>
+                          <th scope="row"><code>use_ORFs</code></th>
+                          <td>Logical. Set to TRUE to use abundances from OrfDB instead of abundances from TranscriptDB. Note that OrfDB collapses isoforms with non-unique transcripts, so abundances may differ significantly.</td>
+                        </tr>
+                        <tr>
+                          <th scope="row"><code>insert_title</code></th>
+                          <td>String to customize the title of the plot.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    
+                  <h5> Returns </h5>
+                    A jellyfish plot constructed as a ggplot object.
+
+                  <h5> Example Usage </h5>
+
+                    <pre>
+                      <span class="comment"> # database setup </span>
+                      gene_ID_table &lt;- data.frame(ID = c("PB.1"), Name = c("Gene1"))
+                      rawDB &lt;- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
+                      DB &lt;- process_db(rawDB, gene_ID_table)
+                      
+                      jellyfish_plot(DB)
+                    </pre>
+                    
+                  <h5> Notes </h5>
+                    Requires the <code>ggplot2</code> package.
+                    
+                    
+                </div>
+                  
+                <div class="footer text-center">
+                  <hr>
+                  IsoPops is licensed under the <a href="https://github.com/kellycochran/IsoPops/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                </div> 
+              </div>
+            </main>
+          </div>
+        </div>
+        
+        <!-- Bootstrap, jQuery -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>        
+    </body>
+</html>
+

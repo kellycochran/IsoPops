@@ -8,6 +8,53 @@ weighted_corr <- function(exon_call_df, weights) {
   return(round(cor(weighted_df), 2))
 }
 
+#' Exon Correlation Heatmap
+#'
+#' Generates a 2D heatmap where each axis is the exons for a gene, and the
+#' values in the heatmap correspond to the correlation between the splicing
+#' events of pairs of exons. For example, the heatmap cell in row i and column
+#' j contains the pearson correlation of all the observed splicing inclusions
+#' and exclusions of exons i and j, according to the transcripts in the data.
+#' This plot can show which exons tend to either be included or spliced out
+#' together, for instance, and any exon pairs which may have mutually exclusive
+#' splicing patterns. Exon presence within a transcript is determined by
+#' literal string matching, so only full and completely correct matches between
+#' exon sequence and transcript sequence are considered.
+#'
+#' @param database A compiled Database object.
+#' @param exon_filename Path to a file in either FASTA or TSV format. If in
+#' FASTA format, the sequences are the annotated sequences for all exons in
+#' the gene, and the IDs are the exon names (will be displayed in the plot).
+#' The ID line must have format ">exonname". If in TSV format, There must be
+#' one column for exon names and one column for the exon sequence,
+#' tab-separated.
+#' @param gene The desired gene to plot. Note that the plot will be generated
+#' only from exon matches to transcripts for the given gene, so no off-target
+#' exon matches are possible.
+#' @param weighted Logical. If TRUE, transcript abundances will be taken into
+#' account when correlations are calculated (recommended).
+#' @param exons_to_include Vector of exon names to subset from the input file.
+#' Default is to include all exons in the inut file. This list is ordered; in
+#' other words, if you would like to rearrange the order of exon names on the
+#' axes of the heatmap, use this argument to do so.
+#' @param weights A numeric vector specifying the weights to apply to each
+#' transcript for the given gene. Default is the number of full-length reads
+#' for the transcript.
+#' @param plot_hist Logical. If TRUE, a histogram of all exon correlations
+#' across the gene is produced.
+#' @param symetric Logical. If TRUE, both sides of the symmetric heatmap are
+#' shown.
+#' @return A ggplot object.
+#' @examples
+#' \dontrun{
+#' gene_ID_table <- data.frame(ID = c("PB.1", "PB.2"),
+#' Name = c("Gene1", "Gene2"))
+#' rawDB <- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
+#' DB <- process_db(rawDB, gene_ID_table)
+#' plot_exon_correlations(DB)
+#' }
+#' @seealso Database
+#' @import ggplot2
 #' @export
 plot_exon_correlations <- function(database, exon_filename, gene, weighted = T,
                                    exons_to_include = NULL, weights = NULL,
