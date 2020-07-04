@@ -177,6 +177,11 @@ h5 {
     text-align: center;
 }
 
+.plot-pic-max-width{
+    width:100%;
+    max-width:500px;
+}
+
 .centered-plot-pic-small {
     content: "";
     clear: both;
