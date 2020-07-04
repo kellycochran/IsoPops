@@ -58,10 +58,10 @@
                     <a class="nav-link" href="plots.html"> Standard Plots </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="jellyfish.html"> Jellyfish Plots <span class="sr-only"> (current) </span> </a>
+                    <a class="nav-link" href="jellyfish.html"> Jellyfish Plots </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="splice_heatmap.html"> Splice Heatmaps </a>
+                    <a class="nav-link" href="splice_heatmap.html"> Splice Heatmaps <span class="sr-only"> (current) </span> </a>
                   </li>
                 </ul>
               </div>
@@ -71,16 +71,16 @@
 
               <div class="">
                 <div class="container mid-page">
-                  <h3> Jellyfish Plots </h3>
+                  <h3> Splice Heatmaps </h3>
                     <br>
                     <div class="centered-plot-pic">
-                      <img class="card-img-top" src="images/jellyfish_full.png" alt="Example plot">
+                      <img class="card-img-top" src="images/splicing.png" alt="Example plot">
                     </div>
                     <br>
                     
-                    <code> jellyfish_plot(database, genes_to_include = unique(database$GeneDB$Name), stabilize_colors = F, use_ORFs = F, ...) </code>
+                    <code> plot_splicing(database, gene, max_isoforms = -1, zoom_in = c(0, 1), apply_max_to_splicing = F) </code>
 
-                    <br><p>Generates a plot showing the log cumulative isoform abundance distribution for one or more genes. Normalized read count is along the x-axis, and log cumulative isoform count is along the y-axis. Each gene is represented by one line, allowing for comparison between the skewness of relative abundance of isoforms between multiple genes.</p>
+                    <br><p>Generates a plot showing isoforms for one gene represented in genome-aligned format. Like a sashimi plot, splice junctions are represented as lines connecting splice donor and acceptor sites. Lines are colored according to the relative frequency of the splice junction occuring in the data. By default, the entire gene length and all isoforms are shown, but parameters allow for only the top X isoforms to be shown. In addition, an interval representing the portion of the gene body to zoom in on can be input, either as two fractions betwen 0 and 1, or as genomic coordinates. </p>
 
                   <h5> Arguments </h5>
                     <table class="table table-borderless table-sm">
@@ -90,30 +90,26 @@
                           <td>A compiled Database object.</td>
                         </tr>
                         <tr>
-                          <th scope="row"><code>genes_to_include</code></th>
-                          <td>Vector of gene names to subset from the database. Default is to plot all genes in the database.</td>
+                          <th scope="row"><code>gene</code></th>
+                          <td>Name of the gene to show.</td>
                         </tr>
                         <tr>
-                          <th scope="row"><code>dot_size</code></th>
-                          <td>Size of points to plot. Default is to scale this value by the number of genes being plotted, but can be manually set for appearance.</td>
+                          <th scope="row"><code>max_isoforms</code></th>
+                          <td>Number of isoforms to plot. The top <code>[max_isoforms]</code> isoforms are chosen in decreasing order of abundance (most common isoforms first). </td>
                         </tr>
                         <tr>
-                          <th scope="row"><code>stabilize_colors</code></th>
-                          <td>Logical. Set to TRUE if you would like to plot a subset of genes, and have the colors match the colors used when all genes are plotted. Default is FALSE, and colors are generated according to the number of genes currently being plotted.</td>
+                          <th scope="row"><code>zoom_in</code></th>
+                          <td>Vector of two numbers, representing the interval of the gene length to show. If both numbers are between 0 and 1, inclusive, then this range is interpreted as fractions of the total gene length (e.g., <code>zoom_in = c(0.25, 0.75)</code> shows only the middle half of the gene). Otherwise, the numbers are interpreted as genomic coordinates for the chromosome that the gene is on.</td>
                         </tr>
                         <tr>
-                          <th scope="row"><code>use_ORFs</code></th>
-                          <td>Logical. Set to TRUE to use abundances from OrfDB instead of abundances from TranscriptDB. Note that OrfDB collapses isoforms with non-unique transcripts, so abundances may differ significantly.</td>
-                        </tr>
-                        <tr>
-                          <th scope="row"><code>insert_title</code></th>
-                          <td>String to customize the title of the plot.</td>
+                          <th scope="row"><code>apply_max_to_splicing</code></th>
+                          <td>Logical. If some isoforms are filtered out using <code>max_isoforms</code>, recalculate the splice junctions shown based on only the isoforms shown.</td>
                         </tr>
                       </tbody>
                     </table>
                     
                   <h5> Returns </h5>
-                    A jellyfish plot constructed as a ggplot object.
+                    A splice heatmap plot constructed as a ggplot object.
 
                   <h5> Example Usage </h5>
 
@@ -123,13 +119,15 @@
                       rawDB &lt;- compile_raw_db(transcript_file, abundance_file, gff_file, ORF_file)
                       DB &lt;- process_db(rawDB, gene_ID_table)
                       
-                      jellyfish_plot(DB)
-                      jellyfish_plot(DB, use_ORFs = T)
+                      plot_splicing(DB, "Crb2")
+                    plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(0.9, 1))
+                    plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(64680000, 64694500))  <span class="comment"> # zoom in using genomic coordinates </span>
                     </pre>
                     
                   <h5> Notes </h5>
                     Requires the <code>ggplot2</code> package.
                     
+                    This function utilizes R plotting functionality in unconventional ways, so it may not be as robust as other functions in this package. If you find a bug, please report through a Github issue or email.
                     
                 </div>
                   
