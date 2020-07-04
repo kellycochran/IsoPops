@@ -75,6 +75,10 @@ section.jumbotron {
     text-align: center;
 }
 
+.shrunk-img-container {
+    width: 450px;
+}
+
 .plot-desc {
     text-align: center;
 }
