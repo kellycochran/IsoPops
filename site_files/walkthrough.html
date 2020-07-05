@@ -46,6 +46,12 @@
                   <li class="nav-item">
                     <a class="nav-link" href="DB_objects.html"> Database Objects </a>
                   </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="walkthrough.html"> PCA + t-SNE </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="clustering.html"> Clustering </a>
+                  </li>
                 </ul>
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                   <span class="sidebar-heading"> Plot Functions </span>
@@ -103,6 +109,14 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                   <pre>
                     write.table(rawDB$TranscriptDB, "path/to/file_name.tsv", quote = F, row.names = F, sep = "\t")
                   </pre>
+                    
+                  <p>
+                    To view the set of transcripts in any Database object in IGV or other genome browsers, you can create a GFF file from the Database:
+                  </p> 
+                    
+                  <pre>
+                    write_gff_data(rawDB, "path/to/file/name.gff")
+                  </pre>
                 
                   <p>
                     To finish processing your dataset, you'll need to provide IsoPops with a way to associate PacBio transcript IDs with the genes you're interested in. Because IsoPops is completely annotation and genome free, this gene information just takes the form of a two-column tab-delimited file. List gene names in the first column and PacBio gene ID prefixes in the second, like so:
@@ -134,7 +148,7 @@ rawDB &lt;- compile_raw_db(transcript_filename, abundance_filename, GFF_filename
                     DB_filter_95perc &lt;- filter_db(DB_filter_notrunc, abund_cutoff = 0.95, recalc_abundances = F)
                   </pre>
                     
-                  <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoPops. Check out the <a href="#">Standard Plots</a> and <a href="#">PCA Plots</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoPops/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
+                  <p> Once you're satisfied with your filtering, you can start playing around with the rest of the functions in IsoPops. Check out the <a href="plots.html">Standard Plots</a> and <a href="pca_tsne.html">PCA + t-SNE</a> pages to see what's possible. If you'd rather go straight to examples to run yourself, you can try out code from the <a href="https://github.com/kellycochran/IsoPops/blob/master/vignettes/Vignette.Rmd">Vignette</a> on Github. </p>
                     
                   <p> Any <a href="DB_objects.html">Database</a> object can be saved and loaded back into memory at a later time. This is recommended once you've processed or filtered a Database (so you don't need to rebuild the Database every time). </p>
                     

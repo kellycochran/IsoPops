@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title> IsoPops | About </title>
+        <title> IsoPops | PCA + t-SNE </title>
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         
@@ -23,7 +23,7 @@
                     <a class="nav-link" href="../index.html"> Home </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="about.html"> About <span class="sr-only"> (current) </span></a>
+                    <a class="nav-link" href="about.html"> About </a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="install.html"> Install </a>
@@ -47,7 +47,7 @@
                     <a class="nav-link" href="DB_objects.html"> Database Objects </a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="walkthrough.html"> PCA + t-SNE </a>
+                    <a class="nav-link" href="walkthrough.html"> PCA + t-SNE <span class="sr-only"> (current) </span></a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="clustering.html"> Clustering </a>
@@ -72,32 +72,66 @@
                 </ul>
               </div>
             </nav>
-              
+
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
               <div class="">
                 <div class="container mid-page">
-                  <h1> About </h1>
+                  <h1> Visualizing Isoform Populations with PCA or t-SNE </h1>
                   <br>
-                    <p class="indent"> The IsoPops package is a product of a research project performed by Tom Ray and Kelly Cochran in the <a href="https://sites.duke.edu/kaylab/">Kay Lab</a> at Duke University. The aim of the project is to characterize the isoform diversity of cell-surface receptors expressed in the retina, using <a href="https://www.pacb.com/applications/rna-sequencing/">PacBio long-read transcriptome sequencing</a>. </p>
                     
-                    <div class="centered-pic-caption">
-                      <a href="https://sites.duke.edu/kaylab/lab-overview/"><img class="card-img-top" src="images/retina.jpg" alt="Image of cells organized spatially in the retina"></a>
-                      <div class="card-body">
-                        <p class="card-text">Diverse subtypes of neurons organize into complex spatial mosaics within the retina during development. Exactly how a developing neuron knows to differentiate or localize to its correct subtype or position is not well-understood. Cell-surface receptors may function as a means of communication between neighboring differentiating cells.</p>
-                      </div>
-                    </div>
+                  <div class="centered-plot-pic">
+                      <img class="card-img-top plot-pic-max-width" src="images/pca.png" alt="Example plot">
+                  </div>
                     
-                    <p class="indent"> Utilizing novel experimental techniques for capturing increased read depth at our target genes, we were able to collect transcripts which provided evidence for thousands of potential unannotated isoforms. From there, we set out to develop a bioinformatics framework to validate, summarize, and visualize this previously unconfirmed transcript diversity. </p>
+                
+                  <p> To interpret the isoform diversity in your data, it can be helpful to view the "spread" or "distribution" of transcripts for one or more genes in a low-dimensional setting. IsoPops can perform dimension reduction followed by visualization using either PCA or t-SNE, two popular unsupervised machine learning tools. The resulting plots display isoforms such that more similar isoforms are close to each other, while more divergent isoforms are farther away from one another. The process for generating these plots is:</p>
+                      
+                  <ol>
+                    <li>Quantitatively represent transcript (or ORF) sequences as vectors via gene-agnostic, annotation-agnostic k-mer counting.</li>
+                    <li>Run either PCA or t-SNE on these vectorized representations of isoforms.</li>
+                    <li>Plot the PCA or t-SNE embeddings of the isoforms, in 2D or 3D.</li>
+                  </ol>
+                  
+                  <p> These three steps are each performed with a single function call in IsoPops, as shown below: </p>
                     
-                    <p class="indent"> IsoPops takes in the files produced by <a href="https://www.pacb.com/blog/tutorial-on-iso-seq-method-applications/">PacBio's IsoSeq protocol</a> for transcriptome processing. First, it compiles the information from the IsoSeq protocol into more compact and interpretable tables within a <a href="#">Database</a> object. <a href="#">Database</a> objects can be provided gene identifying information, which allows for the creation of an additional table containing gene-level summary information about the transcriptome. Next, IsoPops optionally <a href="#">filters out transcripts</a> by user-defined length and/or read count cutoffs and removes transcripts which are likely to be sequencing artifacts. From there, any number of analyses can be performed on the data, including vectorization, dimension reduction (<a href="#">PCA</a>), and hierarchical clustering so that isoform diversity can be easily visualized. IsoPops includes extensive graphing functionality through the popular R package <code>ggplot2</code>, letting you generate the plots you want in a consistent, manuscript-quality style. The entire workflow can be run in only a few lines of code, but is designed to allow for thorough customization of analyses and plots if desired. </p>
+                  <pre>
+                    counts &lt;- get_kmer_counts(DB, genes = c("Ptprd", "Ptprf", "Ptprk", "Ptprs"))
+                    pca &lt;- kmer_PCA(DB, counts)
+                    plot_PCA(DB, pca)
+                  </pre>
                     
-                    <p class="indent"> The manuscript for the project is currently in preparation and expected to be submitted as a preprint to BioArxiv soon. For more information, feel free to contact Tom (<a href="mailto:ray@neuro.duke.edu">ray@neuro.duke.edu</a>), Kelly (<a href="mailto:kelly.cochran36@gmail.com">kelly.cochran36@gmail.com</a>), or Jeremy Kay (<a href="mailto:kay@neuro.duke.edu">kay@neuro.duke.edu</a>).  </p>
+                  <p>To plot in 3D, replace the last line with <code>plot_3D_PCA(DB, pca)</code>.
+                  </p>
+                    
+                  <p>To run t-SNE instead:
+                  </p>
+                    
+                  <pre>
+                    counts &lt;- get_kmer_counts(DB, genes = c("Ptprd", "Ptprf", "Ptprk", "Ptprs"))
+                    tsne &lt;- kmer_tSNE(DB, counts, iterations = 5000, perplexity = 40, dims = 2)
+                    plot_tSNE(DB, tsne)
+                  </pre>
+                    
+                  <p>To plot in 3D:
+                  </p>
+                    
+                  <pre>
+                    counts &lt;- get_kmer_counts(DB, genes = c("Ptprd", "Ptprf", "Ptprk", "Ptprs"))
+                    tsne3D &lt;- kmer_tSNE(DB, counts, dims = 3)
+                    plot_tSNE(DB, tsne3D, force_3D = T)
+                  </pre>
+                
+                  <p>To generate these plots using ORF sequences instead of transcript sequences, simply add the argument <code>use_ORFs = T</code> to each function (including the plot functions).
+                  </p>
+                    
+                  
+                    
                 </div>
                   
                 <div class="footer text-center">
                   <hr>
-                    IsoPops is licensed under the <a href="https://github.com/kellycochran/IsoPops/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
+                  IsoPops is licensed under the <a href="https://github.com/kellycochran/IsoPops/blob/master/LICENSE">GNU General Public License v3.0.</a> This site uses Twitter's <a href="https://getbootstrap.com">Bootstrap</a> framework.
                 </div> 
               </div>
             </main>

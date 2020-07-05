@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title> IsoPops | Jellyfish Plots </title>
+        <title> IsoPops | Splice Heatmaps </title>
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         
@@ -45,6 +45,12 @@
                 <ul class="nav flex-column mb-2">
                   <li class="nav-item">
                     <a class="nav-link" href="DB_objects.html"> Database Objects </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="walkthrough.html"> PCA + t-SNE </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="clustering.html"> Clustering </a>
                   </li>
                 </ul>
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
@@ -120,14 +126,14 @@
                       DB &lt;- process_db(rawDB, gene_ID_table)
                       
                       plot_splicing(DB, "Crb2")
-                    plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(0.9, 1))
-                    plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(64680000, 64694500))  <span class="comment"> # zoom in using genomic coordinates </span>
+                      plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(0.9, 1))
+                      plot_splicing(DB, "Crb2", max_isoforms = 5, zoom_in = c(64680000, 64694500))  <span class="comment"> # zoom in using genomic coordinates </span>
                     </pre>
                     
                   <h5> Notes </h5>
-                    Requires the <code>ggplot2</code> package.
-                    
-                    This function utilizes R plotting functionality in unconventional ways, so it may not be as robust as other functions in this package. If you find a bug, please report through a Github issue or email.
+                    Requires the <code>ggplot2</code> and <code>reshape2</code> packages.
+                    <br>
+                    This function utilizes R plotting functionality in unconventional ways, so it may not be as robust as other functions in this package. If you find a bug, please report through a Github issue or email. This function is also not intended to replace IGV or other genome browser-based visualization. To export any Database to GFF format for genome browser viewing, you can use the <code>write_gff()</code> function (see <a href="walkthrough.html">Walkthrough</a>).
                     
                 </div>
                   
